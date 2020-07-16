@@ -9,9 +9,10 @@ async fn graphiql() -> HttpResponse {
 
 async fn graphql(
     data: web::Json<juniper::http::GraphQLRequest>,
+    model: web::Data<model::ModelState>,
 ) -> Result<HttpResponse, actix_web::Error> {
     let response = web::block(move || {
-        let response = data.execute(&gql::SCHEMA, &());
+        let response = data.execute(&gql::SCHEMA, &gql::Ctx(model.get_ref().clone()));
         serde_json::to_string(&response)
     })
     .await?;
@@ -22,8 +23,11 @@ async fn graphql(
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
-    HttpServer::new(|| {
+    let model = model::ModelState::new();
+
+    HttpServer::new(move || {
         actix_web::App::new()
+            .data(model.clone())
             .route("/graphiql", web::get().to(graphiql))
             .route("/graphql", web::post().to(graphql))
     })

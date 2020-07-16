@@ -1,5 +1,6 @@
 use std::sync;
 
+#[derive(Clone)]
 pub struct ModelState {
     pub counter: sync::Arc<sync::atomic::AtomicUsize>,
 }

@@ -14,6 +14,7 @@ members= [
 
 [dependencies]
 gql = { path = "./gql" }
+model = { path = "./model" }
 actix-web = "2.0"
 actix-rt = "1.0"
 juniper = "0.14"

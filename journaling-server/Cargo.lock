@@ -670,6 +670,7 @@ version = "0.1.0"
 dependencies = [
  "juniper",
  "lazy_static",
+ "model",
 ]
 
 [[package]]
@@ -799,6 +800,7 @@ dependencies = [
  "actix-web",
  "gql",
  "juniper",
+ "model",
  "serde_json",
 ]
 
