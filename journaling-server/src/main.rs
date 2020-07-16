@@ -1,4 +1,5 @@
-use actix_web::{web, HttpResponse, HttpServer};
+use actix_cors::Cors;
+use actix_web::{http, web, HttpResponse, HttpServer};
 use listenfd::ListenFd;
 
 async fn graphiql() -> HttpResponse {
@@ -31,7 +32,16 @@ async fn main() -> std::io::Result<()> {
         actix_web::App::new()
             .data(model.clone())
             .route("/graphiql", web::get().to(graphiql))
-            .route("/graphql", web::post().to(graphql))
+            .service(
+                web::resource("/graphql")
+                    .wrap(
+                        Cors::new()
+                            .allowed_methods(vec!["POST"])
+                            .allowed_headers(vec![http::header::CONTENT_TYPE])
+                            .finish(),
+                    )
+                    .route(web::post().to(graphql)),
+            )
     });
 
     let server = if let Some(l) = listenfd.take_tcp_listener(0).unwrap() {
