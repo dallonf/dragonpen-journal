@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate lazy_static;
 
-use juniper::{EmptyMutation, FieldResult};
+use juniper::{FieldResult};
 use std::convert::TryFrom;
 
 pub struct Ctx(pub model::ModelState);
@@ -20,10 +20,21 @@ impl Query {
     }
 }
 
-type Schema = juniper::RootNode<'static, Query, EmptyMutation<Ctx>>;
+pub struct Mutation;
+#[juniper::object(
+    Context = Ctx
+)]
+impl Mutation {
+    fn counter_increment(context: &Ctx) -> FieldResult<i32> {
+        let result = context.0.increment_counter();
+        Ok(i32::try_from(result)?)
+    }
+}
+
+type Schema = juniper::RootNode<'static, Query, Mutation>;
 
 lazy_static! {
-    pub static ref SCHEMA: Schema = Schema::new(Query, EmptyMutation::new());
+    pub static ref SCHEMA: Schema = Schema::new(Query, Mutation);
 }
 
 #[cfg(test)]
