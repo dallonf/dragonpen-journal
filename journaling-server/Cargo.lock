@@ -798,6 +798,8 @@ dependencies = [
  "actix-rt",
  "actix-web",
  "gql",
+ "juniper",
+ "serde_json",
 ]
 
 [[package]]

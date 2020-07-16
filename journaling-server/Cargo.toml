@@ -12,6 +12,8 @@ members= [
 ]
 
 [dependencies]
+gql = { path = "./gql" }
 actix-web = "2.0"
 actix-rt = "1.0"
-gql = { path = "./gql" }
+juniper = "0.14"
+serde_json="1.0"
