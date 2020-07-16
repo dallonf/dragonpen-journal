@@ -1,4 +1,5 @@
 use actix_web::{web, HttpResponse, HttpServer};
+use listenfd::ListenFd;
 
 async fn graphiql() -> HttpResponse {
     let html = juniper::http::graphiql::graphiql_source("/graphql");
@@ -25,13 +26,19 @@ async fn graphql(
 async fn main() -> std::io::Result<()> {
     let model = model::ModelState::new();
 
-    HttpServer::new(move || {
+    let mut listenfd = ListenFd::from_env();
+    let server = HttpServer::new(move || {
         actix_web::App::new()
             .data(model.clone())
             .route("/graphiql", web::get().to(graphiql))
             .route("/graphql", web::post().to(graphql))
-    })
-    .bind("127.0.0.1:4000")?
-    .run()
-    .await
+    });
+
+    let server = if let Some(l) = listenfd.take_tcp_listener(0).unwrap() {
+        server.listen(l)?
+    } else {
+        server.bind("127.0.0.1:4000")?
+    };
+
+    server.run().await
 }
