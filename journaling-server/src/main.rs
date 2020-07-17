@@ -1,11 +1,12 @@
 use actix_cors::Cors;
-use actix_web::{http, web, HttpResponse, HttpServer};
+use actix_web::{http, web, HttpRequest, HttpResponse, HttpServer};
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 use async_graphql_actix_web as gql_web;
 use listenfd::ListenFd;
 
 async fn gql_playground() -> HttpResponse {
-    let html = playground_source(GraphQLPlaygroundConfig::new("/graphql"));
+    let html =
+        playground_source(GraphQLPlaygroundConfig::new("/graphql").subscription_endpoint("/graphql"));
     HttpResponse::Ok()
         .content_type("text/html; charset=utf-8")
         .body(html)
@@ -22,6 +23,15 @@ async fn graphql(
         .into()
 }
 
+async fn graphql_ws(req: HttpRequest, payload: web::Payload) -> actix_web::Result<HttpResponse> {
+    actix_web_actors::ws::start_with_protocols(
+        gql_web::WSSubscription::new(&gql::SCHEMA),
+        &["graphql-ws"],
+        &req,
+        payload,
+    )
+}
+
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
     let model = model::ModelState::new();
@@ -35,6 +45,11 @@ async fn main() -> std::io::Result<()> {
                         .allowed_methods(vec!["POST"])
                         .allowed_headers(vec![http::header::CONTENT_TYPE])
                         .finish(),
+                )
+                .route(
+                    web::get()
+                        .guard(actix_web::guard::Header("upgrade", "websocket"))
+                        .to(graphql_ws),
                 )
                 .route(web::get().to(gql_playground))
                 .route(web::post().to(graphql)),

@@ -1125,6 +1125,7 @@ dependencies = [
  "actix-cors",
  "actix-rt",
  "actix-web",
+ "actix-web-actors",
  "async-graphql",
  "async-graphql-actix-web",
  "gql",
