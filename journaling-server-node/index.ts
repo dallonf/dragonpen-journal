@@ -1,7 +1,8 @@
+import * as http from 'http';
 import type * as expressTypes from 'express';
-import { ApolloServer } from 'apollo-server-express';
-import { typeDefs, resolvers } from './src/schema';
-import { ModelState, createModelState } from './src/model';
+import { ApolloServer, PubSub } from 'apollo-server-express';
+import { typeDefs, resolvers, Context } from './src/schema';
+import { createModelState } from './src/model';
 
 const express = require('express') as () => expressTypes.Express;
 
@@ -11,15 +12,24 @@ app.get('/', (req, res) => {
 });
 
 const modelState = createModelState();
+const pubSub = new PubSub();
 
 const apolloServer = new ApolloServer({
   typeDefs,
   resolvers: (resolvers as unknown) as {},
-  context: () => ({ modelState }),
+  context: () => {
+    const context: Context = {
+      modelState,
+      pubSub,
+    };
+    return context;
+  },
 });
 apolloServer.applyMiddleware({ app, path: '/graphql' });
+const httpServer = http.createServer(app);
+apolloServer.installSubscriptionHandlers(httpServer);
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
+httpServer.listen(port, () => {
   console.log(`Listening on http://localhost:${port}`);
 });
