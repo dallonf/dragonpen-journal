@@ -1,9 +1,15 @@
+use actix::prelude::*;
 use std::sync;
 
 #[derive(Clone)]
 pub struct ModelState {
-    pub counter: sync::Arc<sync::atomic::AtomicUsize>,
+    counter: sync::Arc<sync::atomic::AtomicUsize>,
 }
+
+// #[derive(Message)]
+// #[rtype(result = "()")]
+// struct CounterUpdated(pub usize);
+
 impl ModelState {
     pub fn new() -> Self {
         ModelState {

@@ -3,6 +3,8 @@ extern crate lazy_static;
 
 use async_graphql as gql;
 use std::convert::TryFrom;
+use tokio::stream::Stream;
+use tokio::stream::StreamExt;
 
 trait ContextUtils {
     fn get_model_state(&self) -> &model::ModelState;
@@ -36,10 +38,22 @@ impl Mutation {
     }
 }
 
-pub type Schema = gql::Schema<Query, Mutation, gql::EmptySubscription>;
+pub struct Subscription;
+#[gql::Subscription]
+impl Subscription {
+    async fn integers(&self, #[arg(default = 1)] step: i32) -> impl Stream<Item = i32> {
+        let mut value = 0;
+        actix_rt::time::interval(std::time::Duration::from_secs(1)).map(move |_| {
+            value += step;
+            value
+        })
+    }
+}
+
+pub type Schema = gql::Schema<Query, Mutation, Subscription>;
 
 lazy_static! {
-    pub static ref SCHEMA: Schema = gql::Schema::new(Query, Mutation, gql::EmptySubscription);
+    pub static ref SCHEMA: Schema = gql::Schema::new(Query, Mutation, Subscription);
 }
 
 #[cfg(test)]
@@ -48,11 +62,9 @@ mod tests {
 
     #[actix_rt::test]
     async fn query() {
-        let schema = gql::Schema::build(Query, Mutation, gql::EmptySubscription).finish();
-
         let result = gql::QueryBuilder::new("{ hello }")
             .data(model::ModelState::new())
-            .execute(&schema)
+            .execute(&SCHEMA)
             .await
             .unwrap();
 

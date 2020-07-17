@@ -982,6 +982,7 @@ dependencies = [
  "lazy_static",
  "model",
  "serde_json",
+ "tokio",
 ]
 
 [[package]]
@@ -1308,6 +1309,10 @@ dependencies = [
 [[package]]
 name = "model"
 version = "0.1.0"
+dependencies = [
+ "actix",
+ "actix-rt",
+]
 
 [[package]]
 name = "multer"
