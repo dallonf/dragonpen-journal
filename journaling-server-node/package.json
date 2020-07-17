@@ -1,0 +1,19 @@
+{
+  "name": "journaling-server-node",
+  "version": "1.0.0",
+  "description": "",
+  "repository": {},
+  "main": "index.js",
+  "scripts": {
+    "start:dev": "ts-node-dev --respawn --transpile-only index.ts"
+  },
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@types/express": "^4.17.7",
+    "ts-node-dev": "^1.0.0-pre.52"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "typescript": "^3.9.7"
+  }
+}
