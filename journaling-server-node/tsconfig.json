@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "CommonJS",
+    "strict": true,
+    "allowSyntheticDefaultImports": true
+  },
+  "include": ["index.ts", "src/**/*.ts"]
+}
