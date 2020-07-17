@@ -1,65 +1,64 @@
 #[macro_use]
 extern crate lazy_static;
 
-use juniper::{FieldResult};
+use async_graphql as gql;
 use std::convert::TryFrom;
 
-pub struct Ctx(pub model::ModelState);
-impl juniper::Context for Ctx {}
+trait ContextUtils {
+    fn get_model_state(&self) -> &model::ModelState;
+}
+impl ContextUtils for gql::Context<'_> {
+    fn get_model_state(&self) -> &model::ModelState {
+        self.data().unwrap()
+    }
+}
 
 pub struct Query;
-#[juniper::object(
-    Context = Ctx
-)]
+#[gql::Object]
 impl Query {
-    fn hello() -> String {
+    #[field]
+    async fn hello(&self) -> String {
         "Hello, GraphQL!".into()
     }
-    fn counter(context: &Ctx) -> FieldResult<i32> {
-        Ok(i32::try_from(context.0.get_counter())?)
+    #[field]
+    async fn counter(&self, ctx: &gql::Context<'_>) -> gql::FieldResult<i32> {
+        Ok(i32::try_from(ctx.get_model_state().get_counter())?)
     }
 }
 
 pub struct Mutation;
-#[juniper::object(
-    Context = Ctx
-)]
+#[gql::Object]
 impl Mutation {
-    fn counter_increment(context: &Ctx) -> FieldResult<i32> {
-        let result = context.0.increment_counter();
+    #[field]
+    async fn counter_increment(&self, ctx: &gql::Context<'_>) -> gql::FieldResult<i32> {
+        let result = ctx.get_model_state().increment_counter();
         Ok(i32::try_from(result)?)
     }
 }
 
-type Schema = juniper::RootNode<'static, Query, Mutation>;
+pub type Schema = gql::Schema<Query, Mutation, gql::EmptySubscription>;
 
 lazy_static! {
-    pub static ref SCHEMA: Schema = Schema::new(Query, Mutation);
+    pub static ref SCHEMA: Schema = gql::Schema::new(Query, Mutation, gql::EmptySubscription);
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use juniper::{graphql_value, Variables};
 
-    fn make_context() -> Ctx {
-        Ctx(model::ModelState::new())
-    }
+    #[actix_rt::test]
+    async fn query() {
+        let schema = gql::Schema::build(Query, Mutation, gql::EmptySubscription).finish();
 
-    #[test]
-    fn query() {
-        let result = juniper::execute(
-            "{ hello }",
-            None,
-            &SCHEMA,
-            &Variables::new(),
-            &make_context(),
-        )
-        .unwrap();
+        let result = gql::QueryBuilder::new("{ hello }")
+            .data(model::ModelState::new())
+            .execute(&schema)
+            .await
+            .unwrap();
 
         assert_eq!(
-            result.0,
-            graphql_value!({
+            result.data,
+            serde_json::json!({
                 "hello": "Hello, GraphQL!"
             })
         );

@@ -20,7 +20,7 @@ gql = { path = "./gql" }
 model = { path = "./model" }
 actix-web = "2.0"
 actix-rt = "1.0"
-juniper = "0.14"
-serde_json = "1.0"
 listenfd = "0.3"
 actix-cors = "0.2.0"
+async-graphql-actix-web = "=1.4.17"
+async-graphql = "=1.16.11"
