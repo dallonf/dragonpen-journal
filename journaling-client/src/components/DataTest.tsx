@@ -3,6 +3,7 @@ import { useQuery, useMutation, gql } from '@apollo/client';
 import { DataTestQuery } from './__generated__/DataTestQuery';
 import { DataTestIncrementMutation } from './__generated__/DataTestIncrementMutation';
 import { DataTestIncrementWriteQuery } from './__generated__/DataTestIncrementWriteQuery';
+import { DataTestIncrementSubscription } from './__generated__/DataTestIncrementSubscription';
 
 const DATA_TEST_QUERY = gql`
   query DataTestQuery {
@@ -21,13 +22,32 @@ const INCREMENT_WRITE_QUERY = gql`
   }
 `;
 
+const INCREMENT_SUBSCRIPTION = gql`
+  subscription DataTestIncrementSubscription {
+    counterIncremented
+  }
+`;
+
 const DataTest = () => {
-  const { loading, error, data, client } = useQuery<DataTestQuery>(
-    DATA_TEST_QUERY
-  );
+  const { loading, error, data, client, subscribeToMore } = useQuery<
+    DataTestQuery
+  >(DATA_TEST_QUERY);
   const [increment] = useMutation<DataTestIncrementMutation>(
     INCREMENT_MUTATION
   );
+
+  React.useEffect(() => {
+    return subscribeToMore<DataTestIncrementSubscription>({
+      document: INCREMENT_SUBSCRIPTION,
+      updateQuery: (prev, { subscriptionData }) => {
+        if (!subscriptionData.data) {
+          return prev;
+        }
+
+        return { ...prev, counter: subscriptionData.data.counterIncremented };
+      },
+    });
+  });
 
   const handleIncrement = async () => {
     const result = await increment();

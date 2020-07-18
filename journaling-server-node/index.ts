@@ -29,7 +29,7 @@ apolloServer.applyMiddleware({ app, path: '/graphql' });
 const httpServer = http.createServer(app);
 apolloServer.installSubscriptionHandlers(httpServer);
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 4000;
 httpServer.listen(port, () => {
   console.log(`Listening on http://localhost:${port}`);
 });

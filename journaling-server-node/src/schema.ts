@@ -10,15 +10,15 @@ export interface Context {
 export const typeDefs = gql`
   type Query {
     hello: String!
-    counter: Int
+    counter: Int!
   }
 
   type Mutation {
-    counterIncrement: Int
+    counterIncrement: Int!
   }
 
   type Subscription {
-    counterIncremented: Int
+    counterIncremented: Int!
   }
 `;
 
