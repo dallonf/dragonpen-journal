@@ -6,8 +6,7 @@ import {
 } from '@material-ui/core';
 import { ThemeProvider as EmotionThemeProvider } from 'emotion-theming';
 import Journal from '../pages/Journal';
-
-const theme = createMuiTheme();
+import theme from './theme';
 
 const App: React.FC = () => (
   <MuiThemeProvider theme={theme}>
