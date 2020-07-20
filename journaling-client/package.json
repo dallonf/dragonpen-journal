@@ -23,6 +23,7 @@
     "react-dom": "^16.13.1",
     "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.1",
+    "rich-markdown-editor": "^10.4.0",
     "subscriptions-transport-ws": "^0.9.17",
     "typescript": "^3.7.5"
   },
