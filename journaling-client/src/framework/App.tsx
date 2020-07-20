@@ -4,14 +4,17 @@ import {
   ThemeProvider as MuiThemeProvider,
 } from '@material-ui/core';
 import { ThemeProvider as EmotionThemeProvider } from 'emotion-theming';
-import Journal from '../pages/journal/Journal';
+import { BrowserRouter } from 'react-router-dom';
 import theme from './theme';
+import Routes from './Routes';
 
 const App: React.FC = () => (
   <MuiThemeProvider theme={theme}>
     <EmotionThemeProvider theme={theme}>
       <CssBaseline />
-      <Journal />
+      <BrowserRouter>
+        <Routes />
+      </BrowserRouter>
     </EmotionThemeProvider>
   </MuiThemeProvider>
 );

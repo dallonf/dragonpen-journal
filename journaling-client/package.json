@@ -21,6 +21,7 @@
     "lodash": "^4.17.19",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
+    "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.1",
     "subscriptions-transport-ws": "^0.9.17",
     "typescript": "^3.7.5"
@@ -49,6 +50,7 @@
   },
   "devDependencies": {
     "@types/lodash": "^4.14.157",
+    "@types/react-router-dom": "^5.1.5",
     "apollo": "^2.30.0"
   }
 }
