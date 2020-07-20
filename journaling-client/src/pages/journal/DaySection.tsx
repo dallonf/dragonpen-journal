@@ -2,7 +2,7 @@ import React from 'react';
 import { Typography, Box } from '@material-ui/core';
 import { styledWithTheme } from '../../utils';
 
-const HeaderLine = styledWithTheme.div`
+const HeaderLine = styledWithTheme(Box)`
   display: flex;
   align-items: center;
 

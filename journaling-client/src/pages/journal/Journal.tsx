@@ -3,6 +3,7 @@ import { AppBar, Typography, Toolbar, Fab, Container } from '@material-ui/core';
 import { Add as AddIcon } from '@material-ui/icons';
 import { styledWithTheme } from '../../utils';
 import DaySection from './DaySection';
+import JournalEntry from './JournalEntry';
 
 const ActuallyFloatingActionButton = styledWithTheme(Fab)((props) => ({
   position: 'fixed',
@@ -26,8 +27,10 @@ const Journal: React.FC = () => (
     </AppBar>
     <AppContainer maxWidth="md">
       <DaySection dayHeader="Monday, July 20, 2020">
-        <b>11:55 AM:</b> Ah, Superintendent Chalmers, welcome! I hope you're
-        prepared for an unforgettable luncheon!
+        <JournalEntry>
+          <b>11:55 AM:</b> Ah, Superintendent Chalmers, welcome! I hope you're
+          prepared for an unforgettable luncheon!
+        </JournalEntry>
       </DaySection>
     </AppContainer>
     <ActuallyFloatingActionButton color="primary" aria-label="add">
