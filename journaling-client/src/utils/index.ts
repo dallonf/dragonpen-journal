@@ -1,5 +1,4 @@
-import baseStyled, { CreateStyled } from '@emotion/styled/macro';
+import styled, { CreateStyled } from '@emotion/styled';
 import { Theme } from '@material-ui/core';
 
-const styled = baseStyled as CreateStyled<Theme>;
-export { styled };
+export const styledWithTheme = styled as CreateStyled<Theme>;
