@@ -1,11 +1,15 @@
 import React from 'react';
 import { Switch, Route } from 'react-router-dom';
-import Journal from '../pages/journal/Journal';
+import JournalPage from '../pages/journal/JournalPage';
+import AddPage from '../pages/add/Add';
 
 const Routes = () => (
   <Switch>
     <Route exact={true} path="/">
-      <Journal />
+      <JournalPage />
+    </Route>
+    <Route exact={true} path="/add">
+      <AddPage />
     </Route>
   </Switch>
 );
