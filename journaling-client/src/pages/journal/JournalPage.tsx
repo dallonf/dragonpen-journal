@@ -57,11 +57,11 @@ const JournalPage: React.FC = () => {
       </AppBar>
       <AppBoxCell>
         <MainAreaContainer maxWidth="md">
-          {lodash.range(3).map((x) => (
-            <DaySection dayHeader="Monday, July 20, 2020">
+          {lodash.range(3).map((i) => (
+            <DaySection key={i} dayHeader="Monday, July 20, 2020">
               <List dense>
-                {lodash.range(10).map((x) => (
-                  <JournalEntryListItem>
+                {lodash.range(10).map((i) => (
+                  <JournalEntryListItem key={i}>
                     <b>11:55 AM:</b> Ah, Superintendent Chalmers, welcome! I
                     hope you're prepared for an unforgettable luncheon!
                   </JournalEntryListItem>
