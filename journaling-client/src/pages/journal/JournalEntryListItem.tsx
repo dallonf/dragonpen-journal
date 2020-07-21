@@ -7,11 +7,13 @@ import {
   Menu,
   MenuItem,
 } from '@material-ui/core';
+import { Link as RouterLink } from 'react-router-dom';
 import { MoreVert as MoreVertIcon } from '@material-ui/icons';
 
-const JournalEntryListItem: React.FC<{ children?: React.ReactNode }> = ({
-  children,
-}) => {
+const JournalEntryListItem: React.FC<{
+  id: string;
+  children?: React.ReactNode;
+}> = ({ id, children }) => {
   const menuElRef = React.useRef();
   const [listItemHover, setListItemHover] = React.useState(false);
   const [menuButtonHover, setMenuButtonHover] = React.useState(false);
@@ -32,10 +34,12 @@ const JournalEntryListItem: React.FC<{ children?: React.ReactNode }> = ({
       button
       onMouseEnter={() => setListItemHover(true)}
       onMouseLeave={() => setListItemHover(false)}
-      onContextMenu={(e) => {
+      onContextMenu={(e: React.MouseEvent) => {
         e.preventDefault();
         if (menuElRef.current) showMenu(menuElRef.current!);
       }}
+      component={RouterLink}
+      to={`/edit/${id}`}
     >
       <ListItemText primary={children} />
       <ListItemSecondaryAction
@@ -55,7 +59,9 @@ const JournalEntryListItem: React.FC<{ children?: React.ReactNode }> = ({
           </IconButton>
         }
         <Menu open={Boolean(menuEl)} anchorEl={menuEl} onClose={closeMenu}>
-          <MenuItem>Edit</MenuItem>
+          <MenuItem component={RouterLink} to={`/edit/${id}`}>
+            Edit
+          </MenuItem>
           <MenuItem>Delete</MenuItem>
         </Menu>
       </ListItemSecondaryAction>

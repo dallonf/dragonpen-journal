@@ -5,7 +5,7 @@ import Editor from 'rich-markdown-editor';
 import { format } from 'date-fns';
 import { styledWithTheme } from '../../utils';
 import Layout, { MainAreaContainer } from '../../framework/Layout';
-import DateTimePickerDialog from './DateTimePickerDialog';
+import DateTimePickerDialog from '../../components/DateTimePickerDialog';
 
 const FlushButtonContainer = styledWithTheme(Box)((props) => ({
   marginLeft: -props.theme.spacing(1),

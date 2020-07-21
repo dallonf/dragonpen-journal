@@ -36,7 +36,7 @@ const JournalPage: React.FC = () => {
           <DaySection key={i} dayHeader="Monday, July 20, 2020">
             <List dense>
               {lodash.range(10).map((i) => (
-                <JournalEntryListItem key={i}>
+                <JournalEntryListItem key={i} id={i.toString()}>
                   <b>11:55 AM:</b> Ah, Superintendent Chalmers, welcome! I hope
                   you're prepared for an unforgettable luncheon!
                 </JournalEntryListItem>
