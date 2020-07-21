@@ -8,9 +8,12 @@ import {
   Container,
   useTheme,
   Button,
+  IconButton,
 } from '@material-ui/core';
+import { ArrowBack as ArrowBackIcon } from '@material-ui/icons';
 import Editor from 'rich-markdown-editor';
 import { format } from 'date-fns';
+import { Link as RouterLink } from 'react-router-dom';
 import { styledWithTheme } from '../../utils';
 import DateTimePickerDialog from './DateTimePickerDialog';
 
@@ -43,7 +46,7 @@ const ButtonWithNormalText = styled(Button)`
 
 const AddPage: React.FC = () => {
   const theme = useTheme();
-  const [body, setBody] = React.useState('');
+  const [_body, setBody] = React.useState('');
   const [time, setTime] = React.useState(new Date());
   const [timeModalOpen, setTimeModalOpen] = React.useState(false);
 
@@ -51,7 +54,16 @@ const AddPage: React.FC = () => {
     <AppBox>
       <AppBar position="static">
         <Toolbar>
-          <Typography variant="h6">Journal</Typography>
+          <IconButton
+            edge="start"
+            aria-label="back"
+            color="inherit"
+            component={RouterLink}
+            to="/"
+          >
+            <ArrowBackIcon />
+          </IconButton>
+          <Typography variant="h6">Add Entry</Typography>
         </Toolbar>
       </AppBar>
       <AppBoxCell>
