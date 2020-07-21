@@ -17,7 +17,7 @@ const ButtonWithNormalText = styled(Button)`
 `;
 
 const AddPage: React.FC = () => {
-  const [_body, setBody] = React.useState('');
+  const [, setBody] = React.useState('');
   const [time, setTime] = React.useState(new Date());
   const [timeModalOpen, setTimeModalOpen] = React.useState(false);
 
