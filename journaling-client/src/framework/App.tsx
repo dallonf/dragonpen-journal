@@ -8,16 +8,13 @@ import { BrowserRouter } from 'react-router-dom';
 import { MuiPickersUtilsProvider } from '@material-ui/pickers';
 import DateFnsUtils from '@date-io/date-fns';
 import theme from './theme';
-import Routes from './Routes';
 
-const App: React.FC = () => (
+const App: React.FC = ({ children }) => (
   <MuiThemeProvider theme={theme}>
     <EmotionThemeProvider theme={theme}>
       <MuiPickersUtilsProvider utils={DateFnsUtils}>
         <CssBaseline />
-        <BrowserRouter>
-          <Routes />
-        </BrowserRouter>
+        <BrowserRouter>{children}</BrowserRouter>
       </MuiPickersUtilsProvider>
     </EmotionThemeProvider>
   </MuiThemeProvider>
