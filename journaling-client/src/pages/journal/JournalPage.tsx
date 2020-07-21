@@ -6,6 +6,7 @@ import {
   Fab,
   Container,
   Box,
+  List,
 } from '@material-ui/core';
 import styled from '@emotion/styled/macro';
 import { Add as AddIcon } from '@material-ui/icons';
@@ -13,7 +14,7 @@ import * as lodash from 'lodash';
 import { useHistory } from 'react-router-dom';
 import { styledWithTheme } from '../../utils';
 import DaySection from './DaySection';
-import JournalEntry from './JournalEntry';
+import JournalEntryListItem from './JournalEntryListItem';
 
 const AppBox = styled(Box)({
   display: 'flex',
@@ -56,14 +57,16 @@ const JournalPage: React.FC = () => {
       </AppBar>
       <AppBoxCell>
         <MainAreaContainer maxWidth="md">
-          {lodash.range(5).map((x) => (
+          {lodash.range(3).map((x) => (
             <DaySection dayHeader="Monday, July 20, 2020">
-              {lodash.range(100).map((x) => (
-                <JournalEntry>
-                  <b>11:55 AM:</b> Ah, Superintendent Chalmers, welcome! I hope
-                  you're prepared for an unforgettable luncheon!
-                </JournalEntry>
-              ))}
+              <List dense>
+                {lodash.range(10).map((x) => (
+                  <JournalEntryListItem>
+                    <b>11:55 AM:</b> Ah, Superintendent Chalmers, welcome! I
+                    hope you're prepared for an unforgettable luncheon!
+                  </JournalEntryListItem>
+                ))}
+              </List>
             </DaySection>
           ))}
           <ActuallyFloatingActionButton

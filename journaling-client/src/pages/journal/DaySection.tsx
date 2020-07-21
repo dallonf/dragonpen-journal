@@ -13,6 +13,7 @@ const HeaderLine = styledWithTheme(Box)`
   display: flex;
   align-items: center;
   background: ${(props) => props.theme.palette.background.default};
+  z-index: 10;
 
   &:before,
   &:after {
