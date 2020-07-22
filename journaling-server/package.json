@@ -8,7 +8,8 @@
     "start:dev": "ts-node-dev --respawn --transpile-only index.ts",
     "typecheck": "tsc --noEmit",
     "generate:types:gql": "graphql-codegen --config codegen.yml",
-    "repl": "node -r ./dev/repl.js"
+    "generate:types:gql:watch": "npm run generate:types:gql -- --watch \"src/schema.ts\"",
+    "repl": "node -r ./scripts/repl.js"
   },
   "license": "UNLICENSED",
   "devDependencies": {
