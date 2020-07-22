@@ -6,6 +6,8 @@ export interface TestCounterState {
   counter: number;
 }
 
+export type Model = ReturnType<typeof makeModel>;
+
 const makeModel = (client?: Client) => {
   client = client ?? makeClient();
 

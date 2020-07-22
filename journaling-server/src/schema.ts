@@ -1,46 +1,57 @@
-import { gql, PubSub } from 'apollo-server';
-import createModel, { TestCounterState } from './model';
+import { gql } from 'apollo-server';
+import { Model } from './model';
 import { Resolvers } from './generated/graphql';
 
 export interface Context {
-  counterState: TestCounterState;
-  pubSub: PubSub;
+  model: Model;
 }
 
 export const typeDefs = gql`
   type Query {
     hello: String!
-    counter: Int!
+  }
+
+  input JournalEntryCreateInput {
+    timestamp: String!
+    text: String!
+  }
+
+  type JournalEntry {
+    id: ID!
+    timestamp: String!
+    text: String!
+  }
+
+  type JournalEntryCreateResponse {
+    success: Boolean!
+    journalEntry: JournalEntry
   }
 
   type Mutation {
-    counterIncrement: Int!
-  }
-
-  type Subscription {
-    counterIncremented: Int!
+    journalEntryCreate(
+      input: JournalEntryCreateInput!
+    ): JournalEntryCreateResponse!
   }
 `;
 
 export const resolvers: Resolvers<Context> = {
   Query: {
     hello: () => 'Hello GraphQL!',
-    counter: (q, args, ctx) => ctx.counterState.counter,
   },
   Mutation: {
-    counterIncrement: (m, args, ctx) => {
-      ctx.counterState.counter += 1;
-      ctx.pubSub.publish('COUNTER_INCREMENTED', {
-        counterIncremented: ctx.counterState.counter,
+    journalEntryCreate: async (m, args, ctx) => {
+      const result = await ctx.model.journalEntry.create({
+        ...args.input,
+        timestamp: new Date(args.input.timestamp),
       });
-      return ctx.counterState.counter;
-    },
-  },
-  Subscription: {
-    counterIncremented: {
-      subscribe: (s, args, ctx) => {
-        return ctx.pubSub.asyncIterator(['COUNTER_INCREMENTED']);
-      },
+
+      return {
+        success: true,
+        journalEntry: {
+          ...result,
+          timestamp: result.timestamp.toISOString(),
+        },
+      };
     },
   },
 };

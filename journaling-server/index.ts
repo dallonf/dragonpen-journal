@@ -1,6 +1,6 @@
 import * as http from 'http';
 import type * as expressTypes from 'express';
-import { ApolloServer, PubSub } from 'apollo-server-express';
+import { ApolloServer } from 'apollo-server-express';
 import { typeDefs, resolvers, Context } from './src/schema';
 import createModel from './src/model';
 
@@ -12,15 +12,13 @@ app.get('/', (req, res) => {
 });
 
 const model = createModel();
-const pubSub = new PubSub();
 
 const apolloServer = new ApolloServer({
   typeDefs,
   resolvers: (resolvers as unknown) as {},
   context: () => {
     const context: Context = {
-      counterState: model.testCounter,
-      pubSub,
+      model,
     };
     return context;
   },

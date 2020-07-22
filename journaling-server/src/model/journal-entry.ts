@@ -6,12 +6,12 @@ export type JournalEntryBody = Source;
 
 export interface JournalEntry {
   id: string;
-  date: Date;
+  timestamp: Date;
   text: string;
 }
 
 interface Source {
-  date: Date;
+  timestamp: Date;
   text: string;
 }
 
@@ -19,7 +19,7 @@ type Overwrite<TOriginal, TNew> = Omit<TOriginal, keyof TNew> & TNew;
 type ApiSource = Overwrite<
   Source,
   {
-    date: string;
+    timestamp: string;
   }
 >;
 
@@ -43,7 +43,7 @@ export default (client: Client) => {
     if (result.body.found) {
       return {
         id: result.body._id,
-        date: new Date(result.body._source.date),
+        timestamp: new Date(result.body._source.timestamp),
         text: result.body._source.text,
       };
     } else {
