@@ -23,15 +23,18 @@ type ApiSource = Overwrite<
   }
 >;
 
-type GetResponse =
-  | ({
-      _index: string;
-      _id: string;
-    } & {
+type SaveRequestBody = Source;
+
+type GetResponse = {
+  _index: string;
+  _id: string;
+} & (
+  | {
       found: true;
       _source: ApiSource;
-    })
-  | { found: false };
+    }
+  | { found: false }
+);
 
 export default (client: Client) => {
   const read = async (id: string): Promise<JournalEntry | null> => {
@@ -51,17 +54,19 @@ export default (client: Client) => {
     }
   };
 
-  const create = async (input: JournalEntryBody): Promise<JournalEntry> => {
-    const result = await client.index<{
-      _id: string;
-    }>({
+  const save = async (input: JournalEntry): Promise<JournalEntry> => {
+    const result = await client.index<{ _id: string }, SaveRequestBody>({
+      id: input.id,
       index: INDEX,
-      body: input,
+      body: {
+        timestamp: input.timestamp,
+        text: input.text,
+      },
     });
 
     const readResult = await read(result.body._id);
     return readResult!;
   };
 
-  return { read, create };
+  return { read, save };
 };

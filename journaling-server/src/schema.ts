@@ -11,7 +11,8 @@ export const typeDefs = gql`
     hello: String!
   }
 
-  input JournalEntryCreateInput {
+  input JournalEntrySaveInput {
+    id: ID!
     timestamp: String!
     text: String!
   }
@@ -22,15 +23,13 @@ export const typeDefs = gql`
     text: String!
   }
 
-  type JournalEntryCreateResponse {
+  type JournalEntrySaveResponse {
     success: Boolean!
     journalEntry: JournalEntry
   }
 
   type Mutation {
-    journalEntryCreate(
-      input: JournalEntryCreateInput!
-    ): JournalEntryCreateResponse!
+    journalEntrySave(input: JournalEntrySaveInput!): JournalEntrySaveResponse!
   }
 `;
 
@@ -39,10 +38,12 @@ export const resolvers: Resolvers<Context> = {
     hello: () => 'Hello GraphQL!',
   },
   Mutation: {
-    journalEntryCreate: async (m, args, ctx) => {
-      const result = await ctx.model.journalEntry.create({
-        ...args.input,
-        timestamp: new Date(args.input.timestamp),
+    journalEntrySave: async (m, args, ctx) => {
+      const { input } = args;
+      const result = await ctx.model.journalEntry.save({
+        id: input.id,
+        timestamp: new Date(input.timestamp),
+        text: input.text,
       });
 
       return {
