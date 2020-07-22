@@ -1,9 +1,9 @@
 import { gql, PubSub } from 'apollo-server';
-import { ModelState } from './model';
+import createModel, { TestCounterState } from './model';
 import { Resolvers } from './generated/graphql';
 
 export interface Context {
-  modelState: ModelState;
+  counterState: TestCounterState;
   pubSub: PubSub;
 }
 
@@ -25,15 +25,15 @@ export const typeDefs = gql`
 export const resolvers: Resolvers<Context> = {
   Query: {
     hello: () => 'Hello GraphQL!',
-    counter: (q, args, ctx) => ctx.modelState.counter,
+    counter: (q, args, ctx) => ctx.counterState.counter,
   },
   Mutation: {
     counterIncrement: (m, args, ctx) => {
-      ctx.modelState.counter += 1;
+      ctx.counterState.counter += 1;
       ctx.pubSub.publish('COUNTER_INCREMENTED', {
-        counterIncremented: ctx.modelState.counter,
+        counterIncremented: ctx.counterState.counter,
       });
-      return ctx.modelState.counter;
+      return ctx.counterState.counter;
     },
   },
   Subscription: {

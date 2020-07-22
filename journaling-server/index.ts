@@ -2,7 +2,7 @@ import * as http from 'http';
 import type * as expressTypes from 'express';
 import { ApolloServer, PubSub } from 'apollo-server-express';
 import { typeDefs, resolvers, Context } from './src/schema';
-import { createModelState } from './src/model';
+import createModel from './src/model';
 
 const express = require('express') as () => expressTypes.Express;
 
@@ -11,7 +11,7 @@ app.get('/', (req, res) => {
   res.send('Hello World');
 });
 
-const modelState = createModelState();
+const model = createModel();
 const pubSub = new PubSub();
 
 const apolloServer = new ApolloServer({
@@ -19,7 +19,7 @@ const apolloServer = new ApolloServer({
   resolvers: (resolvers as unknown) as {},
   context: () => {
     const context: Context = {
-      modelState,
+      counterState: model.testCounter,
       pubSub,
     };
     return context;
