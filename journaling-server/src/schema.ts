@@ -8,7 +8,7 @@ export interface Context {
 
 export const typeDefs = gql`
   type Query {
-    hello: String!
+    journalEntryById(id: ID): JournalEntry
   }
 
   input JournalEntrySaveInput {
@@ -35,7 +35,15 @@ export const typeDefs = gql`
 
 export const resolvers: Resolvers<Context> = {
   Query: {
-    hello: () => 'Hello GraphQL!',
+    journalEntryById: async (q, args, ctx) => {
+      if (!args.id) return null;
+      const result = await ctx.model.journalEntry.read(args.id);
+      if (!result) return null;
+      return {
+        ...result,
+        timestamp: result.timestamp.toISOString(),
+      };
+    },
   },
   Mutation: {
     journalEntrySave: async (m, args, ctx) => {
