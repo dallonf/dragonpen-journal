@@ -82,6 +82,7 @@ const EditPage: React.FC = () => {
           timestamp: dateFns.parseISO(journalEntryById.timestamp),
           initialText: journalEntryById.text,
         });
+        setText(journalEntryById.text);
       } else {
         setFormState({
           timestamp: new Date(),
@@ -108,6 +109,23 @@ const EditPage: React.FC = () => {
     };
     setFormState(newState);
 
+    save(newState);
+  };
+
+  const updateText = (newTextGetter: () => string) => {
+    const newText = newTextGetter();
+    setText(newText);
+
+    if (!formState) return;
+    const newState = {
+      ...formState,
+      text: newText,
+    };
+
+    save(newState);
+  };
+
+  const save = async (newState: FormState) =>
     mutate({
       variables: {
         input: {
@@ -117,7 +135,6 @@ const EditPage: React.FC = () => {
         },
       },
     });
-  };
 
   return (
     <Layout pageTitle="Edit Entry" backLink="/">
@@ -142,7 +159,7 @@ const EditPage: React.FC = () => {
         </FlushButtonContainer>
         <Editor
           value={formState?.initialText || ''}
-          onChange={setText}
+          onChange={updateText}
           readOnly={query.loading}
         />
       </MainAreaContainer>
