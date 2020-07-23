@@ -38,7 +38,7 @@ interface EditPageParams {
 
 interface FormState {
   timestamp: Date;
-  text: string;
+  initialText: string;
 }
 
 const EditPage: React.FC = () => {
@@ -52,6 +52,7 @@ const EditPage: React.FC = () => {
   );
 
   const [formState, setFormState] = React.useState<FormState>();
+  const [text, setText] = React.useState('');
 
   React.useEffect(() => {
     if (
@@ -64,12 +65,12 @@ const EditPage: React.FC = () => {
       if (journalEntryById) {
         setFormState({
           timestamp: dateFns.parseISO(journalEntryById.timestamp),
-          text: journalEntryById.text,
+          initialText: journalEntryById.text,
         });
       } else {
         setFormState({
           timestamp: new Date(),
-          text: '',
+          initialText: '',
         });
       }
     }
@@ -102,11 +103,11 @@ const EditPage: React.FC = () => {
             />
           )}
         </FlushButtonContainer>
-        {/* <Editor
-          defaultValue={body}
-          onChange={setBody}
-          readOnly={!query.loading}
-        /> */}
+        <Editor
+          value={formState?.initialText || ''}
+          onChange={setText}
+          readOnly={query.loading}
+        />
       </MainAreaContainer>
     </Layout>
   );
