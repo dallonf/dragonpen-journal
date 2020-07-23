@@ -98,34 +98,18 @@ const EditPage: React.FC = () => {
     EDIT_PAGE_MUTATION
   );
 
+  // TODO: these update functions are not very resilient to rapid state changes
+  // esp. consider React concurrent mode
+
   const updateTimestamp = (newTime: Date) => {
     if (!formState) return;
-
-    // TODO: this could cause weird problems in async mode
-    // prefer setFormState((prevFormState) => ...)
+    
     const newState = {
       ...formState,
       timestamp: newTime,
     };
     setFormState(newState);
 
-    save(newState);
-  };
-
-  const updateText = (newTextGetter: () => string) => {
-    const newText = newTextGetter();
-    setText(newText);
-
-    if (!formState) return;
-    const newState = {
-      ...formState,
-      text: newText,
-    };
-
-    save(newState);
-  };
-
-  const save = async (newState: FormState) =>
     mutate({
       variables: {
         input: {
@@ -135,6 +119,23 @@ const EditPage: React.FC = () => {
         },
       },
     });
+  };
+
+  const updateText = (newTextGetter: () => string) => {
+    const newText = newTextGetter();
+    setText(newText);
+
+    if (!formState) return;
+    mutate({
+      variables: {
+        input: {
+          id: params.id,
+          text: newText,
+          timestamp: formState.timestamp.toISOString(),
+        },
+      },
+    });
+  };
 
   return (
     <Layout pageTitle="Edit Entry" backLink="/">
