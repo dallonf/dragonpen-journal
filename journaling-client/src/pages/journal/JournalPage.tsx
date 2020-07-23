@@ -5,11 +5,11 @@ import * as lodash from 'lodash';
 import { useHistory } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { useQuery, gql } from '@apollo/client';
+import * as dateFns from 'date-fns';
 import { styledWithTheme } from '../../utils';
 import Layout, { MainAreaContainer } from '../../framework/Layout';
 import { JournalPageQuery } from '../../generated/gql-types';
 import DaySection from './DaySection';
-import JournalEntryListItemView from './JournalEntryListItemView';
 import JournalEntryListItem, {
   JOURNAL_ENTRY_LIST_ITEM_FRAGMENT,
 } from './JournalEntryListItem';
@@ -51,13 +51,21 @@ const JournalPage: React.FC = () => {
     throw error;
   } else {
     const entries = data!.journalEntries;
-    inner = (
-      <List dense>
-        {entries.map((x) => (
-          <JournalEntryListItem key={x.id} journalEntry={x} />
-        ))}
-      </List>
+    const days = lodash.groupBy(entries, (x) =>
+      dateFns.startOfDay(new Date(x.timestamp)).toISOString()
     );
+
+    inner = Object.keys(days).map((day) => (
+      <DaySection key={day} dayHeader={dateFns.format(new Date(day), 'PPPP')}>
+        {
+          <List dense>
+            {days[day].map((x) => (
+              <JournalEntryListItem key={x.id} journalEntry={x} />
+            ))}
+          </List>
+        }
+      </DaySection>
+    ));
   }
 
   const handleAddClick = () => {
@@ -68,18 +76,6 @@ const JournalPage: React.FC = () => {
     <Layout pageTitle="Journal">
       <JournalPageMainAreaContainer maxWidth="md">
         {inner}
-        {/* {lodash.range(3).map((i) => (
-          <DaySection key={i} dayHeader="Monday, July 20, 2020">
-            <List dense>
-              {lodash.range(10).map((i) => (
-                <JournalEntryListItemView key={i} id={i.toString()}>
-                  <b>11:55 AM:</b> Ah, Superintendent Chalmers, welcome! I hope
-                  you're prepared for an unforgettable luncheon!
-                </JournalEntryListItemView>
-              ))}
-            </List>
-          </DaySection>
-        ))} */}
         <ActuallyFloatingActionButton
           color="primary"
           aria-label="add"
