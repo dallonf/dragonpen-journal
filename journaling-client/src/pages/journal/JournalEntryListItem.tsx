@@ -20,12 +20,15 @@ export interface Props {
 const JournalEntryListItem: React.FC<Props> = ({ journalEntry }) => {
   return (
     <JournalEntryListItemView id={journalEntry.id}>
-      <b>{dateFns.format(new Date(journalEntry.timestamp), 'p')}: </b>{' '}
-      {/* Replacing some of the weird slashes inserted by the weird Markdown editor */}
       <Markdown
         disallowedTypes={['link']}
         unwrapDisallowed={true}
-        source={journalEntry.text.replace(/\n\\\n/g, '\n')}
+        // Replacing some of the weird slashes inserted by the weird Markdown editor
+        // TODO: also don't love this approach of adding the date - I think it creates a bug where the first item could be messed up
+        source={
+          `**${dateFns.format(new Date(journalEntry.timestamp), 'p')}**: ` +
+          journalEntry.text.replace(/\n\\\n/g, '\n')
+        }
       />
     </JournalEntryListItemView>
   );
