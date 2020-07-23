@@ -1,71 +1,27 @@
 import React from 'react';
-import {
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
-  IconButton,
-  Menu,
-  MenuItem,
-} from '@material-ui/core';
-import { Link as RouterLink } from 'react-router-dom';
-import { MoreVert as MoreVertIcon } from '@material-ui/icons';
+import { gql } from '@apollo/client';
+import * as dateFns from 'date-fns';
+import { JournalEntryListItemFragment } from '../../generated/gql-types';
+import JournalEntryListItemView from './JournalEntryListItemView';
 
-const JournalEntryListItem: React.FC<{
-  id: string;
-  children?: React.ReactNode;
-}> = ({ id, children }) => {
-  const menuElRef = React.useRef();
-  const [listItemHover, setListItemHover] = React.useState(false);
-  const [menuButtonHover, setMenuButtonHover] = React.useState(false);
+export const JOURNAL_ENTRY_LIST_ITEM_FRAGMENT = gql`
+  fragment JournalEntryListItemFragment on JournalEntry {
+    id
+    text
+    timestamp
+  }
+`;
 
-  const hovering = listItemHover || menuButtonHover;
+export interface Props {
+  journalEntry: JournalEntryListItemFragment;
+}
 
-  const [menuEl, setMenuEl] = React.useState<null | HTMLElement>();
-
-  const showMenu = (menuEl: HTMLElement) => {
-    setMenuEl(menuEl);
-  };
-  const closeMenu = () => {
-    setMenuEl(null);
-  };
-
+const JournalEntryListItem: React.FC<Props> = ({ journalEntry }) => {
   return (
-    <ListItem
-      button
-      onMouseEnter={() => setListItemHover(true)}
-      onMouseLeave={() => setListItemHover(false)}
-      onContextMenu={(e: React.MouseEvent) => {
-        e.preventDefault();
-        if (menuElRef.current) showMenu(menuElRef.current!);
-      }}
-      component={RouterLink}
-      to={`/edit/${id}`}
-    >
-      <ListItemText primary={children} />
-      <ListItemSecondaryAction
-        onMouseEnter={() => setMenuButtonHover(true)}
-        onMouseLeave={() => setMenuButtonHover(false)}
-        style={{ visibility: hovering ? 'visible' : 'hidden' }}
-      >
-        {
-          <IconButton
-            edge="end"
-            aria-label="menu"
-            onClick={(e) => showMenu(e.currentTarget)}
-            // IconButton doesn't appear to type its `ref` correctly
-            ref={menuElRef as any}
-          >
-            <MoreVertIcon />
-          </IconButton>
-        }
-        <Menu open={Boolean(menuEl)} anchorEl={menuEl} onClose={closeMenu}>
-          <MenuItem component={RouterLink} to={`/edit/${id}`}>
-            Edit
-          </MenuItem>
-          <MenuItem>Delete</MenuItem>
-        </Menu>
-      </ListItemSecondaryAction>
-    </ListItem>
+    <JournalEntryListItemView id={journalEntry.id}>
+      <b>{dateFns.format(new Date(journalEntry.timestamp), 'p')}: </b>{' '}
+      {journalEntry.text}
+    </JournalEntryListItemView>
   );
 };
 
