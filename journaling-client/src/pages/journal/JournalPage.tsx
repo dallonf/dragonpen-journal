@@ -3,6 +3,7 @@ import { Fab, List } from '@material-ui/core';
 import { Add as AddIcon } from '@material-ui/icons';
 import * as lodash from 'lodash';
 import { useHistory } from 'react-router-dom';
+import { v4 as uuidv4 } from 'uuid';
 import { styledWithTheme } from '../../utils';
 import Layout, { MainAreaContainer } from '../../framework/Layout';
 import DaySection from './DaySection';
@@ -24,9 +25,8 @@ const ActuallyFloatingActionButton = styledWithTheme(Fab)((props) => ({
 const JournalPage: React.FC = () => {
   const history = useHistory();
 
-  // TODO: Replace with React Router Link?
   const handleAddClick = () => {
-    history.push('/add');
+    history.push(`/edit/${uuidv4()}`);
   };
 
   return (

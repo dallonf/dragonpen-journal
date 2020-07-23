@@ -17,10 +17,8 @@ const ButtonWithNormalText = styled(Button)`
 `;
 
 const EditPage: React.FC = () => {
-  const [body, setBody] = React.useState(
-    "Ah, Superintendent Chalmers, welcome! I hope you're prepared for an unforgettable luncheon!"
-  );
-  const [time, setTime] = React.useState(dateFns.parseISO('2020-07-20T11:55'));
+  const [body, setBody] = React.useState('');
+  const [time, setTime] = React.useState(new Date());
   const [timeModalOpen, setTimeModalOpen] = React.useState(false);
 
   return (
