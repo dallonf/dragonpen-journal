@@ -80,7 +80,7 @@
     "build": "node scripts/build.js",
     "test": "node scripts/test.js",
     "typecheck": "tsc --incremental --noEmit false --outDir tmp/.ts",
-    "typegen:gql": "apollo client:codegen --target typescript --addTypename --globalTypesFile=src/globalTypes.ts"
+    "typegen:gql": "apollo client:codegen --target typescript --addTypename --outputFlat src/generated/gql-types.ts"
   },
   "eslintConfig": {
     "extends": "react-app"
