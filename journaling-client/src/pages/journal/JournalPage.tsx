@@ -58,7 +58,7 @@ const JournalPage: React.FC = () => {
     inner = Object.keys(days).map((day) => (
       <DaySection key={day} dayHeader={dateFns.format(new Date(day), 'PPPP')}>
         {
-          <List dense>
+          <List>
             {days[day].map((x) => (
               <JournalEntryListItem key={x.id} journalEntry={x} />
             ))}
