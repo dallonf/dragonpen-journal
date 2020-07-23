@@ -1,4 +1,4 @@
-import { Client, ApiError } from '@elastic/elasticsearch';
+import { Client, RequestParams } from '@elastic/elasticsearch';
 
 const INDEX = 'journal-entry';
 
@@ -36,7 +36,33 @@ type GetResponse = {
   | { found: false }
 );
 
+interface SearchResponse {
+  hits: {
+    total: {
+      value: number;
+    };
+    hits: {
+      _index: string;
+      _id: string;
+      _source: ApiSource;
+    }[];
+  };
+}
+
 export default (client: Client) => {
+  const readList = async (): Promise<JournalEntry[]> => {
+    const result = await client.search<SearchResponse, RequestParams.Search>({
+      size: 100,
+      sort: 'timestamp:desc',
+    });
+
+    return result.body.hits.hits.map((x) => ({
+      id: x._id,
+      timestamp: new Date(x._source.timestamp),
+      text: x._source.text,
+    }));
+  };
+
   const read = async (id: string): Promise<JournalEntry | null> => {
     let result;
     try {
@@ -77,5 +103,5 @@ export default (client: Client) => {
     return readResult!;
   };
 
-  return { read, save };
+  return { readList, read, save };
 };

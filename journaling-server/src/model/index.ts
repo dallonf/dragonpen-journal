@@ -1,6 +1,6 @@
 import { Client } from '@elastic/elasticsearch';
 import { makeClient } from './elastic-client';
-import journalEntry from './journal-entry';
+import journalEntry, { JournalEntry } from './journal-entry';
 
 export interface TestCounterState {
   counter: number;
@@ -18,3 +18,4 @@ const makeModel = (client?: Client) => {
 };
 
 export default makeModel;
+export { JournalEntry };

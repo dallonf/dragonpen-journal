@@ -1,6 +1,9 @@
 import { gql } from 'apollo-server';
-import { Model } from './model';
-import { Resolvers } from './generated/graphql';
+import { Model, JournalEntry as JournalEntryModel } from './model';
+import {
+  Resolvers,
+  JournalEntry as JournalEntryGql,
+} from './generated/graphql';
 
 export interface Context {
   model: Model;
@@ -9,6 +12,7 @@ export interface Context {
 export const typeDefs = gql`
   type Query {
     journalEntryById(id: ID): JournalEntry
+    journalEntries: [JournalEntry!]!
   }
 
   input JournalEntrySaveInput {
@@ -33,6 +37,11 @@ export const typeDefs = gql`
   }
 `;
 
+const journalEntryModelToGql = (model: JournalEntryModel): JournalEntryGql => ({
+  ...model,
+  timestamp: model.timestamp.toISOString(),
+});
+
 export const resolvers: Resolvers<Context> = {
   Query: {
     journalEntryById: async (q, args, ctx) => {
@@ -44,6 +53,8 @@ export const resolvers: Resolvers<Context> = {
         timestamp: result.timestamp.toISOString(),
       };
     },
+    journalEntries: async (q, args, ctx) =>
+      (await ctx.model.journalEntry.readList()).map(journalEntryModelToGql),
   },
   Mutation: {
     journalEntrySave: async (m, args, ctx) => {
@@ -56,10 +67,7 @@ export const resolvers: Resolvers<Context> = {
 
       return {
         success: true,
-        journalEntry: {
-          ...result,
-          timestamp: result.timestamp.toISOString(),
-        },
+        journalEntry: journalEntryModelToGql(result),
       };
     },
   },
