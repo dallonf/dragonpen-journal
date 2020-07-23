@@ -3,7 +3,7 @@ import styled from '@emotion/styled/macro';
 import { Button, Box } from '@material-ui/core';
 import Editor from 'rich-markdown-editor';
 import * as dateFns from 'date-fns';
-import { gql, useQuery, NetworkStatus } from '@apollo/client';
+import { gql, useQuery, NetworkStatus, useMutation } from '@apollo/client';
 import { useParams } from 'react-router-dom';
 import { styledWithTheme } from '../../utils';
 import Layout, { MainAreaContainer } from '../../framework/Layout';
@@ -11,6 +11,8 @@ import DateTimePickerDialog from '../../components/DateTimePickerDialog';
 import {
   EditPageQuery,
   EditPageQueryVariables,
+  EditPageMutation,
+  EditPageMutationVariables,
 } from '../../generated/gql-types';
 
 const EDIT_PAGE_QUERY = gql`
@@ -19,6 +21,19 @@ const EDIT_PAGE_QUERY = gql`
       id
       timestamp
       text
+    }
+  }
+`;
+
+const EDIT_PAGE_MUTATION = gql`
+  mutation EditPageMutation($input: JournalEntrySaveInput!) {
+    journalEntrySave(input: $input) {
+      success
+      journalEntry {
+        id
+        timestamp
+        text
+      }
     }
   }
 `;
@@ -78,6 +93,32 @@ const EditPage: React.FC = () => {
 
   const [timeModalOpen, setTimeModalOpen] = React.useState(false);
 
+  const [mutate] = useMutation<EditPageMutation, EditPageMutationVariables>(
+    EDIT_PAGE_MUTATION
+  );
+
+  const updateTimestamp = (newTime: Date) => {
+    if (!formState) return;
+
+    // TODO: this could cause weird problems in async mode
+    // prefer setFormState((prevFormState) => ...)
+    const newState = {
+      ...formState,
+      timestamp: newTime,
+    };
+    setFormState(newState);
+
+    mutate({
+      variables: {
+        input: {
+          id: params.id,
+          text: text,
+          timestamp: newState.timestamp.toISOString(),
+        },
+      },
+    });
+  };
+
   return (
     <Layout pageTitle="Edit Entry" backLink="/">
       <MainAreaContainer maxWidth="md">
@@ -92,11 +133,7 @@ const EditPage: React.FC = () => {
             <DateTimePickerDialog
               open={timeModalOpen}
               onClose={(value) => {
-                value &&
-                  setFormState((prevFormState) => ({
-                    ...prevFormState!,
-                    timestamp: value,
-                  }));
+                value && updateTimestamp(value);
                 setTimeModalOpen(false);
               }}
               value={formState.timestamp}
