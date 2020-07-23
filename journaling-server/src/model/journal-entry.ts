@@ -1,4 +1,4 @@
-import { Client } from '@elastic/elasticsearch';
+import { Client, ApiError } from '@elastic/elasticsearch';
 
 const INDEX = 'journal-entry';
 
@@ -38,10 +38,19 @@ type GetResponse = {
 
 export default (client: Client) => {
   const read = async (id: string): Promise<JournalEntry | null> => {
-    const result = await client.get<GetResponse>({
-      index: INDEX,
-      id,
-    });
+    let result;
+    try {
+      result = await client.get<GetResponse>({
+        index: INDEX,
+        id,
+      });
+    } catch (err) {
+      if (err.meta && err.meta.statusCode === 404) {
+        return null;
+      } else {
+        throw err;
+      }
+    }
 
     if (result.body.found) {
       return {
