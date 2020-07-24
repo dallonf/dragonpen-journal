@@ -1,6 +1,6 @@
 import { Client, RequestParams } from '@elastic/elasticsearch';
-
-const INDEX = 'journal-entry';
+import { User } from './user';
+import { sanitizeIndexName } from './util';
 
 export type JournalEntryBody = Source;
 
@@ -49,12 +49,24 @@ interface SearchResponse {
   };
 }
 
-export default (client: Client) => {
+export default (client: Client, user: User) => {
+  const index = `user_${sanitizeIndexName(user.id)}_journal_entry`;
+
   const readList = async (): Promise<JournalEntry[]> => {
-    const result = await client.search<SearchResponse, RequestParams.Search>({
-      size: 100,
-      sort: 'timestamp:desc',
-    });
+    let result;
+    try {
+      result = await client.search<SearchResponse, RequestParams.Search>({
+        index,
+        size: 100,
+        sort: 'timestamp:desc',
+      });
+    } catch (err) {
+      if (err.meta && err.meta.statusCode === 404) {
+        return [];
+      } else {
+        throw err;
+      }
+    }
 
     return result.body.hits.hits.map((x) => ({
       id: x._id,
@@ -67,7 +79,7 @@ export default (client: Client) => {
     let result;
     try {
       result = await client.get<GetResponse>({
-        index: INDEX,
+        index,
         id,
       });
     } catch (err) {
@@ -92,7 +104,7 @@ export default (client: Client) => {
   const save = async (input: JournalEntry): Promise<JournalEntry> => {
     const result = await client.index<{ _id: string }, SaveRequestBody>({
       id: input.id,
-      index: INDEX,
+      index,
       body: {
         timestamp: input.timestamp,
         text: input.text,

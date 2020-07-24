@@ -12,8 +12,6 @@ app.get('/', (req, res) => {
   res.send('Hello World');
 });
 
-const model = createModel();
-
 const apolloServer = new ApolloServer({
   typeDefs,
   resolvers: (resolvers as unknown) as {},
@@ -35,6 +33,8 @@ const apolloServer = new ApolloServer({
         }
       );
     }
+
+    const model = createModel(user);
 
     const context: Context = {
       user,

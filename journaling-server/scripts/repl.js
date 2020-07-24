@@ -3,5 +3,5 @@ require('ts-node').register();
 const { default: createModel } = require('../src/model');
 
 global.repl = {
-  model: createModel(),
+  model: createModel({ sub: process.env.REPL_USER_ID }),
 };

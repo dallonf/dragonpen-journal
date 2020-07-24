@@ -15,6 +15,13 @@ const getKey: GetPublicKeyOrSecret = (header, callback) => {
   });
 };
 
+interface DecodedJwt {
+  name: string;
+  sub: string;
+  iat: number;
+  exp: number;
+}
+
 export const validateTokenAndGetUser = (token: string): Promise<User> => {
   if (token) {
     const bearerToken = token.split(' ');
@@ -32,7 +39,11 @@ export const validateTokenAndGetUser = (token: string): Promise<User> => {
           if (error) {
             reject(error);
           } else {
-            resolve(decoded as User);
+            const decodedJwt = (decoded as unknown) as DecodedJwt;
+            resolve({
+              id: decodedJwt.sub,
+              name: decodedJwt.name,
+            });
           }
         }
       );
