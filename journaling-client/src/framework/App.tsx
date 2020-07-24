@@ -10,7 +10,7 @@ import { ApolloProvider } from '@apollo/client';
 import DateFnsUtils from '@date-io/date-fns';
 import { Auth0Provider, useAuth0 } from '@auth0/auth0-react';
 import theme from './theme';
-import { client } from '../data/apollo-client';
+import { createClient } from '../data/apollo-client';
 
 const RequireLogin: React.FC = ({ children }) => {
   const { loginWithRedirect, isAuthenticated, isLoading } = useAuth0();
@@ -30,6 +30,21 @@ const RequireLogin: React.FC = ({ children }) => {
   }
 };
 
+const AuthenticatedApolloProvider: React.FC = ({ children }) => {
+  const { getAccessTokenSilently } = useAuth0();
+
+  // TODO: would this create a bunch of clients if re-rendered?
+  // Would anything actually cause it to re-render?
+  const client = createClient({
+    getAccessToken: () =>
+      getAccessTokenSilently({
+        audience: process.env.REACT_APP_AUTH0_API_ID,
+      }),
+  });
+
+  return <ApolloProvider client={client}>{children}</ApolloProvider>;
+};
+
 const App: React.FC = ({ children }) => (
   <MuiThemeProvider theme={theme}>
     <EmotionThemeProvider theme={theme}>
@@ -38,13 +53,14 @@ const App: React.FC = ({ children }) => (
           domain={process.env.REACT_APP_AUTH0_DOMAIN}
           clientId={process.env.REACT_APP_AUTH0_CLIENT_ID}
           redirectUri={window.location.origin}
+          audience={process.env.REACT_APP_AUTH0_API_ID}
         >
-          <ApolloProvider client={client}>
-            <RequireLogin>
+          <RequireLogin>
+            <AuthenticatedApolloProvider>
               <CssBaseline />
               <BrowserRouter>{children}</BrowserRouter>
-            </RequireLogin>
-          </ApolloProvider>
+            </AuthenticatedApolloProvider>
+          </RequireLogin>
         </Auth0Provider>
       </MuiPickersUtilsProvider>
     </EmotionThemeProvider>
