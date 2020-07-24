@@ -5,7 +5,7 @@
   "repository": {},
   "main": "index.js",
   "scripts": {
-    "start:dev": "ts-node-dev --respawn --transpile-only index.ts",
+    "start:dev": "ts-node-dev --respawn --transpile-only -r dotenv/config index.ts",
     "typecheck": "tsc --noEmit",
     "generate:types:gql": "graphql-codegen --config codegen.yml",
     "generate:types:gql:watch": "npm run generate:types:gql -- --watch \"src/schema.ts\"",

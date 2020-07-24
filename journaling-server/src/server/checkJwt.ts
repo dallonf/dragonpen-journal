@@ -1,4 +1,4 @@
-import jwt, { GetPublicKeyOrSecret } from 'jsonwebtoken';
+import { verify, GetPublicKeyOrSecret } from 'jsonwebtoken';
 import * as jwksRsa from 'jwks-rsa';
 import { User } from '../model/user';
 
@@ -20,7 +20,7 @@ export const validateTokenAndGetUser = (token: string): Promise<User> => {
     const bearerToken = token.split(' ');
 
     return new Promise((resolve, reject) => {
-      jwt.verify(
+      verify(
         bearerToken[1],
         getKey,
         {
