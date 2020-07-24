@@ -23,7 +23,7 @@ const RequireLogin: React.FC = ({ children }) => {
     }
   });
 
-  if (isLoading) {
+  if (isLoading || unauthenticated) {
     return null;
   } else {
     return <>{children}</>;
