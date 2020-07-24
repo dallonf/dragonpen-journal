@@ -1,8 +1,9 @@
 import * as http from 'http';
 import type * as expressTypes from 'express';
-import { ApolloServer } from 'apollo-server-express';
+import { ApolloServer, AuthenticationError } from 'apollo-server-express';
 import { typeDefs, resolvers, Context } from './src/schema';
 import createModel from './src/model';
+import { validateTokenAndGetUser } from './src/server/checkJwt';
 
 const express = require('express') as () => expressTypes.Express;
 
@@ -16,14 +17,33 @@ const model = createModel();
 const apolloServer = new ApolloServer({
   typeDefs,
   resolvers: (resolvers as unknown) as {},
-  context: () => {
+  context: async ({ req }) => {
+    const jwtHeader = req.header('authorization');
+    if (!jwtHeader) {
+      throw new AuthenticationError(
+        'Must provide a JWT in the Authorization header'
+      );
+    }
+    let user;
+    try {
+      user = await validateTokenAndGetUser(jwtHeader);
+    } catch (err) {
+      throw Object.assign(
+        new AuthenticationError(err.message || 'Error processing JWT'),
+        {
+          original: err,
+        }
+      );
+    }
+
     const context: Context = {
+      user,
       model,
     };
     return context;
   },
 });
-apolloServer.applyMiddleware({ app, path: '/graphql' });
+apolloServer.applyMiddleware({ app, cors: true, path: '/graphql' });
 const httpServer = http.createServer(app);
 apolloServer.installSubscriptionHandlers(httpServer);
 

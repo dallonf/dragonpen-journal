@@ -4,8 +4,10 @@ import {
   Resolvers,
   JournalEntry as JournalEntryGql,
 } from './generated/graphql';
+import { User } from './model/user';
 
 export interface Context {
+  user: User;
   model: Model;
 }
 
