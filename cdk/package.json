@@ -8,7 +8,11 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "synth": "npm run build && npm run cdk synth",
+    "diff": "npm run build && npm run cdk diff",
+    "deploy": "npm run build && npm run cdk deploy",
+    "destroy": "npm run build && npm run cdk destroy"
   },
   "devDependencies": {
     "@aws-cdk/assert": "1.54.0",
@@ -21,6 +25,7 @@
     "typescript": "~3.7.2"
   },
   "dependencies": {
+    "@aws-cdk/aws-elasticsearch": "^1.54.0",
     "@aws-cdk/core": "1.54.0",
     "source-map-support": "^0.5.16"
   }
