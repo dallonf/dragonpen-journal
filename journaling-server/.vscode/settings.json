@@ -1,0 +1,10 @@
+{
+  "search.exclude": {
+    "index.js": true,
+    "src/**/*.js": true
+  },
+  "files.exclude": {
+    "src/**/*.js": true,
+    "index.js": true
+  }
+}

@@ -2,3 +2,5 @@ node_modules
 src/generated/*
 graphql.schema.json
 .env
+index.js
+src/**/*.js
