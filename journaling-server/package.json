@@ -10,7 +10,8 @@
     "generate:types:gql": "graphql-codegen --config codegen.yml",
     "generate:types:gql:watch": "npm run generate:types:gql -- --watch \"src/schema.ts\"",
     "repl": "node -r ./scripts/repl.js",
-    "build": "npm run generate:types:gql && tsc"
+    "build:ts": "npm run generate:types:gql && tsc",
+    "build:docker": "docker build ."
   },
   "license": "UNLICENSED",
   "devDependencies": {
