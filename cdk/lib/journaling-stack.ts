@@ -3,6 +3,8 @@ import * as elasticsearch from '@aws-cdk/aws-elasticsearch';
 import * as ecsPatterns from '@aws-cdk/aws-ecs-patterns';
 import * as ecs from '@aws-cdk/aws-ecs';
 import * as ec2 from '@aws-cdk/aws-ec2';
+import * as route53 from '@aws-cdk/aws-route53';
+import * as route53Targets from '@aws-cdk/aws-route53-targets';
 import { EnvConfig } from './env';
 import { JournalingUi } from './journaling-ui';
 
@@ -65,20 +67,32 @@ export class JournalingStack extends cdk.Stack {
         }
       );
 
+      const zone = route53.HostedZone.fromHostedZoneId(
+        this,
+        'dallonf.com',
+        props.envConfig.R53_HOSTED_ZONE_ID
+      );
+
+      new route53.ARecord(this, 'gqlServiceRecord', {
+        zone,
+        recordName: props.envConfig.GQL_DOMAIN,
+        target: route53.RecordTarget.fromAlias(new route53Targets.LoadBalancerTarget(gqlService.loadBalancer)),
+      });
+
       const gqlUrl = `http://${gqlService.loadBalancer.loadBalancerDnsName}/graphql`;
 
-      const ui = new JournalingUi(this, 'ui', {
-        envConfig: props.envConfig,
-        gqlUrl,
-      });
+      // const ui = new JournalingUi(this, 'ui', {
+      //   envConfig: props.envConfig,
+      //   gqlUrl,
+      // });
 
       new cdk.CfnOutput(this, 'gqlUrl', {
         value: gqlUrl,
       });
 
-      new cdk.CfnOutput(this, 'appUrl', {
-        value: ui.appUrl,
-      });
+      // new cdk.CfnOutput(this, 'appUrl', {
+      //   value: ui.appUrl,
+      // });
     }
   }
 }
