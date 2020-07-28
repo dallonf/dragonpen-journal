@@ -6,6 +6,7 @@ type EnvironmentName = 'staging';
 export interface EnvConfig {
   AUTH0_API_IDENTIFIER: string;
   AUTH0_DOMAIN: string;
+  AUTH0_CLIENT_ID: string;
 }
 
 export const defaultEnv = parse(readFileSync('.env', 'utf-8')) as Partial<

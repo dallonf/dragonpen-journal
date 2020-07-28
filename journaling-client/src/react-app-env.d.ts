@@ -9,6 +9,7 @@ declare namespace NodeJS {
     readonly REACT_APP_AUTH0_DOMAIN: string;
     readonly REACT_APP_AUTH0_CLIENT_ID: string;
     readonly REACT_APP_AUTH0_API_ID: string;
+    readonly REACT_APP_GQL_URL: string;
   }
 }
 
