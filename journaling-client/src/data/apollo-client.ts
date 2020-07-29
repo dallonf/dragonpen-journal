@@ -15,7 +15,7 @@ export const createClient = ({
   });
 
   const httpLink = new HttpLink({
-    uri: 'http://localhost:4000/graphql',
+    uri: process.env.REACT_APP_GQL_URL,
   });
 
   const client = new ApolloClient({

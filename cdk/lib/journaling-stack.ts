@@ -67,32 +67,37 @@ export class JournalingStack extends cdk.Stack {
         }
       );
 
-      const zone = route53.HostedZone.fromHostedZoneId(
+      const zone = route53.HostedZone.fromHostedZoneAttributes(
         this,
         'dallonf.com',
-        props.envConfig.R53_HOSTED_ZONE_ID
+        {
+          zoneName: 'dallonf.com',
+          hostedZoneId: props.envConfig.R53_HOSTED_ZONE_ID,
+        }
       );
 
       new route53.ARecord(this, 'gqlServiceRecord', {
         zone,
         recordName: props.envConfig.GQL_DOMAIN,
-        target: route53.RecordTarget.fromAlias(new route53Targets.LoadBalancerTarget(gqlService.loadBalancer)),
+        target: route53.RecordTarget.fromAlias(
+          new route53Targets.LoadBalancerTarget(gqlService.loadBalancer)
+        ),
       });
 
-      const gqlUrl = `http://${gqlService.loadBalancer.loadBalancerDnsName}/graphql`;
+      const gqlUrl = `http://${props.envConfig.GQL_DOMAIN}/graphql`;
 
-      // const ui = new JournalingUi(this, 'ui', {
-      //   envConfig: props.envConfig,
-      //   gqlUrl,
-      // });
+      const ui = new JournalingUi(this, 'ui', {
+        envConfig: props.envConfig,
+        gqlUrl,
+      });
 
       new cdk.CfnOutput(this, 'gqlUrl', {
         value: gqlUrl,
       });
 
-      // new cdk.CfnOutput(this, 'appUrl', {
-      //   value: ui.appUrl,
-      // });
+      new cdk.CfnOutput(this, 'appUrl', {
+        value: ui.appUrl,
+      });
     }
   }
 }
