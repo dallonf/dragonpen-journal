@@ -7,5 +7,5 @@ import { getEnvConfig } from '../lib/env';
 const app = new cdk.App();
 new JournalingStack(app, 'JournalingStackStaging', {
   envConfig: getEnvConfig('staging'),
-  enableExpensiveStuff: true,
+  enableExpensiveStuff: false,
 });

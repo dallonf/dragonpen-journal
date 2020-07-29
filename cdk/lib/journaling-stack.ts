@@ -5,6 +5,7 @@ import * as ecs from '@aws-cdk/aws-ecs';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as route53 from '@aws-cdk/aws-route53';
 import * as route53Targets from '@aws-cdk/aws-route53-targets';
+import * as acm from '@aws-cdk/aws-certificatemanager';
 import { EnvConfig } from './env';
 import { JournalingUi } from './journaling-ui';
 
@@ -16,6 +17,24 @@ interface JournalingStackProps extends cdk.StackProps {
 export class JournalingStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props: JournalingStackProps) {
     super(scope, id, props);
+
+    const gqlDomain = `api.${props.envConfig.DOMAIN}`;
+    const gqlUrl = `http://${gqlDomain}/graphql`;
+
+    const zone = route53.HostedZone.fromHostedZoneAttributes(
+      this,
+      'dallonf.com',
+      {
+        zoneName: 'dallonf.com',
+        hostedZoneId: props.envConfig.R53_HOSTED_ZONE_ID,
+      }
+    );
+
+    const acmCert = acm.Certificate.fromCertificateArn(
+      this,
+      'httpsCert',
+      props.envConfig.ARN_HTTPS_CERT
+    );
 
     if (props.enableExpensiveStuff) {
       const ecDomain = new elasticsearch.CfnDomain(this, 'elasticsearch', {
@@ -67,37 +86,28 @@ export class JournalingStack extends cdk.Stack {
         }
       );
 
-      const zone = route53.HostedZone.fromHostedZoneAttributes(
-        this,
-        'dallonf.com',
-        {
-          zoneName: 'dallonf.com',
-          hostedZoneId: props.envConfig.R53_HOSTED_ZONE_ID,
-        }
-      );
-
       new route53.ARecord(this, 'gqlServiceRecord', {
         zone,
-        recordName: props.envConfig.GQL_DOMAIN,
+        recordName: gqlDomain,
         target: route53.RecordTarget.fromAlias(
           new route53Targets.LoadBalancerTarget(gqlService.loadBalancer)
         ),
       });
 
-      const gqlUrl = `http://${props.envConfig.GQL_DOMAIN}/graphql`;
-
-      const ui = new JournalingUi(this, 'ui', {
-        envConfig: props.envConfig,
-        gqlUrl,
-      });
-
       new cdk.CfnOutput(this, 'gqlUrl', {
         value: gqlUrl,
       });
-
-      new cdk.CfnOutput(this, 'appUrl', {
-        value: ui.appUrl,
-      });
     }
+
+    const ui = new JournalingUi(this, 'ui', {
+      envConfig: props.envConfig,
+      gqlUrl,
+      hostedZone: zone,
+      acmCert,
+    });
+
+    new cdk.CfnOutput(this, 'appUrl', {
+      value: ui.appUrl,
+    });
   }
 }

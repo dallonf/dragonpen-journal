@@ -3,11 +3,17 @@ import * as childProcess from 'child_process';
 import * as cdk from '@aws-cdk/core';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as s3Deployment from '@aws-cdk/aws-s3-deployment';
+import * as cloudfront from '@aws-cdk/aws-cloudfront';
+import * as route53 from '@aws-cdk/aws-route53';
+import * as route53Targets from '@aws-cdk/aws-route53-targets';
+import * as acm from '@aws-cdk/aws-certificatemanager';
 import { EnvConfig } from './env';
 
 export interface JournalingUiProps {
   gqlUrl: string;
   envConfig: EnvConfig;
+  hostedZone: route53.IHostedZone;
+  acmCert: acm.ICertificate;
 }
 
 export class JournalingUi extends cdk.Construct {
@@ -34,8 +40,8 @@ export class JournalingUi extends cdk.Construct {
 
     const appBucket = new s3.Bucket(this, 'appBucket', {
       websiteIndexDocument: 'index.html',
-      publicReadAccess: true,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
+      publicReadAccess: true,
     });
 
     new s3Deployment.BucketDeployment(this, 'appDeployment', {
@@ -45,6 +51,32 @@ export class JournalingUi extends cdk.Construct {
       destinationBucket: appBucket,
     });
 
-    this.appUrl = appBucket.bucketWebsiteUrl;
+    const cloudfrontDistribution = new cloudfront.CloudFrontWebDistribution(
+      this,
+      'cloudfront',
+      {
+        originConfigs: [
+          {
+            s3OriginSource: {
+              s3BucketSource: appBucket,
+            },
+            behaviors: [{ isDefaultBehavior: true }],
+          },
+        ],
+        viewerCertificate: cloudfront.ViewerCertificate.fromAcmCertificate(
+          props.acmCert
+        ),
+      }
+    );
+
+    new route53.ARecord(this, 'appRecord', {
+      zone: props.hostedZone,
+      recordName: props.envConfig.DOMAIN,
+      target: route53.RecordTarget.fromAlias(
+        new route53Targets.CloudFrontTarget(cloudfrontDistribution)
+      ),
+    });
+
+    this.appUrl = `https://${props.envConfig.DOMAIN}`;
   }
 }
