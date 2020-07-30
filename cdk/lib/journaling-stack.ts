@@ -6,7 +6,7 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 import * as route53 from '@aws-cdk/aws-route53';
 import * as route53Targets from '@aws-cdk/aws-route53-targets';
 import * as acm from '@aws-cdk/aws-certificatemanager';
-import { EnvConfig } from './env';
+import { EnvConfig, getDomainName } from './env';
 import { JournalingUi } from './journaling-ui';
 
 interface JournalingStackProps extends cdk.StackProps {
@@ -18,17 +18,13 @@ export class JournalingStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props: JournalingStackProps) {
     super(scope, id, props);
 
-    const gqlDomain = `api.${props.envConfig.DOMAIN}`;
+    const gqlDomain = getDomainName(props.envConfig, 'api');
     const gqlUrl = `http://${gqlDomain}/graphql`;
 
-    const zone = route53.HostedZone.fromHostedZoneAttributes(
-      this,
-      'dallonf.com',
-      {
-        zoneName: 'dallonf.com',
-        hostedZoneId: props.envConfig.R53_HOSTED_ZONE_ID,
-      }
-    );
+    const zone = route53.HostedZone.fromHostedZoneAttributes(this, 'r53zone', {
+      zoneName: props.envConfig.DOMAIN,
+      hostedZoneId: props.envConfig.R53_HOSTED_ZONE_ID,
+    });
 
     const acmCert = acm.Certificate.fromCertificateArn(
       this,

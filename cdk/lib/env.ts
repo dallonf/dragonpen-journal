@@ -9,6 +9,7 @@ export interface EnvConfig {
   AUTH0_CLIENT_ID: string;
   R53_HOSTED_ZONE_ID: string;
   DOMAIN: string;
+  HOST_PREFIX?: string;
   ARN_HTTPS_CERT: string;
 }
 
@@ -21,3 +22,10 @@ export const getEnvConfig = (envName: EnvironmentName) =>
     ...defaultEnv,
     ...parse(readFileSync(`.env.${envName}`)),
   } as EnvConfig);
+
+export const getDomainName = (envConfig: EnvConfig, ...names: string[]) =>
+  ['journal', ...names, envConfig.HOST_PREFIX ?? null]
+    .filter((x) => x)
+    .join('-') +
+  '.' +
+  envConfig.DOMAIN;

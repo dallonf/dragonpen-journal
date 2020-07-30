@@ -7,7 +7,7 @@ import * as cloudfront from '@aws-cdk/aws-cloudfront';
 import * as route53 from '@aws-cdk/aws-route53';
 import * as route53Targets from '@aws-cdk/aws-route53-targets';
 import * as acm from '@aws-cdk/aws-certificatemanager';
-import { EnvConfig } from './env';
+import { EnvConfig, getDomainName } from './env';
 
 export interface JournalingUiProps {
   gqlUrl: string;
@@ -21,6 +21,8 @@ export class JournalingUi extends cdk.Construct {
 
   constructor(scope: cdk.Construct, id: string, props: JournalingUiProps) {
     super(scope, id);
+
+    const appDomain = getDomainName(props.envConfig);
 
     if (process.env.BUILD_UI) {
       const envVars: { [key: string]: string } = {
@@ -44,13 +46,6 @@ export class JournalingUi extends cdk.Construct {
       publicReadAccess: true,
     });
 
-    new s3Deployment.BucketDeployment(this, 'appDeployment', {
-      sources: [
-        s3Deployment.Source.asset(path.resolve('../journaling-client/build')),
-      ],
-      destinationBucket: appBucket,
-    });
-
     const cloudfrontDistribution = new cloudfront.CloudFrontWebDistribution(
       this,
       'cloudfront',
@@ -64,19 +59,33 @@ export class JournalingUi extends cdk.Construct {
           },
         ],
         viewerCertificate: cloudfront.ViewerCertificate.fromAcmCertificate(
-          props.acmCert
+          props.acmCert,
+          {
+            aliases: [appDomain],
+            securityPolicy: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2018,
+            sslMethod: cloudfront.SSLMethod.SNI,
+          }
         ),
       }
     );
 
+    new s3Deployment.BucketDeployment(this, 'appDeployment', {
+      sources: [
+        s3Deployment.Source.asset(path.resolve('../journaling-client/build')),
+      ],
+      destinationBucket: appBucket,
+      distribution: cloudfrontDistribution,
+      retainOnDelete: false,
+    });
+
     new route53.ARecord(this, 'appRecord', {
       zone: props.hostedZone,
-      recordName: props.envConfig.DOMAIN,
+      recordName: appDomain,
       target: route53.RecordTarget.fromAlias(
         new route53Targets.CloudFrontTarget(cloudfrontDistribution)
       ),
     });
 
-    this.appUrl = `https://${props.envConfig.DOMAIN}`;
+    this.appUrl = `https://${appDomain}`;
   }
 }
