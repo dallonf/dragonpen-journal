@@ -4,8 +4,8 @@ import * as ecsPatterns from '@aws-cdk/aws-ecs-patterns';
 import * as ecs from '@aws-cdk/aws-ecs';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as route53 from '@aws-cdk/aws-route53';
-import * as route53Targets from '@aws-cdk/aws-route53-targets';
 import * as acm from '@aws-cdk/aws-certificatemanager';
+import * as iam from '@aws-cdk/aws-iam';
 import { EnvConfig, getDomainName } from './env';
 import { JournalingUi } from './journaling-ui';
 
@@ -18,8 +18,8 @@ export class JournalingStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props: JournalingStackProps) {
     super(scope, id, props);
 
-    const gqlDomain = getDomainName(props.envConfig, 'api');
-    const gqlUrl = `https://${gqlDomain}/graphql`;
+    const apiDomain = getDomainName(props.envConfig, 'api');
+    const gqlUrl = `https://${apiDomain}/graphql`;
 
     const zone = route53.HostedZone.fromHostedZoneAttributes(this, 'r53zone', {
       zoneName: props.envConfig.DOMAIN,
@@ -30,6 +30,26 @@ export class JournalingStack extends cdk.Stack {
       this,
       'httpsCert',
       props.envConfig.ARN_HTTPS_CERT
+    );
+
+    const vpc = new ec2.Vpc(this, 'vpc', {
+      maxAzs: 2,
+      natGateways: 0,
+    });
+
+    const dbSecurityGroup = new ec2.SecurityGroup(this, 'databaseGroup', {
+      vpc,
+      allowAllOutbound: true,
+    });
+    const apiSecurityGroup = new ec2.SecurityGroup(this, 'apiGroup', {
+      vpc,
+      allowAllOutbound: true,
+    });
+
+    dbSecurityGroup.addIngressRule(
+      apiSecurityGroup,
+      ec2.Port.tcp(9200),
+      'API can access database'
     );
 
     if (props.enableExpensiveStuff) {
@@ -46,11 +66,19 @@ export class JournalingStack extends cdk.Stack {
           volumeSize: 10,
           volumeType: 'standard',
         },
-      });
-
-      const vpc = new ec2.Vpc(this, 'vpc', {
-        maxAzs: 2,
-        natGateways: 0,
+        accessPolicies: {
+          Version: '2012-10-17',
+          Statement: [
+            {
+              Effect: 'Allow',
+              Principal: {
+                AWS: '*',
+              },
+              Action: ['es:*'],
+              Resource: '*',
+            },
+          ],
+        },
       });
 
       const ecsCluster = new ecs.Cluster(this, 'ecsCluster', {
@@ -63,7 +91,7 @@ export class JournalingStack extends cdk.Stack {
         },
       });
 
-      const gqlService = new ecsPatterns.ApplicationLoadBalancedEc2Service(
+      const apiService = new ecsPatterns.ApplicationLoadBalancedEc2Service(
         this,
         'gqlservice',
         {
@@ -79,11 +107,12 @@ export class JournalingStack extends cdk.Stack {
               ELASTIC_NODE: `https://${ecDomain.attrDomainEndpoint}`,
             },
           },
-          domainName: gqlDomain,
+          domainName: apiDomain,
           domainZone: zone,
           certificate: acmCert,
         }
       );
+      apiService.service.connections.addSecurityGroup(apiSecurityGroup);
 
       new cdk.CfnOutput(this, 'gqlUrl', {
         value: gqlUrl,
