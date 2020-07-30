@@ -19,7 +19,7 @@ export class JournalingStack extends cdk.Stack {
     super(scope, id, props);
 
     const gqlDomain = getDomainName(props.envConfig, 'api');
-    const gqlUrl = `http://${gqlDomain}/graphql`;
+    const gqlUrl = `https://${gqlDomain}/graphql`;
 
     const zone = route53.HostedZone.fromHostedZoneAttributes(this, 'r53zone', {
       zoneName: props.envConfig.DOMAIN,
@@ -79,16 +79,11 @@ export class JournalingStack extends cdk.Stack {
               ELASTIC_NODE: `https://${ecDomain.attrDomainEndpoint}`,
             },
           },
+          domainName: gqlDomain,
+          domainZone: zone,
+          certificate: acmCert,
         }
       );
-
-      new route53.ARecord(this, 'gqlServiceRecord', {
-        zone,
-        recordName: gqlDomain,
-        target: route53.RecordTarget.fromAlias(
-          new route53Targets.LoadBalancerTarget(gqlService.loadBalancer)
-        ),
-      });
 
       new cdk.CfnOutput(this, 'gqlUrl', {
         value: gqlUrl,
