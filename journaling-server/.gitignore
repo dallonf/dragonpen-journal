@@ -4,3 +4,4 @@ graphql.schema.json
 .env
 index.js
 src/**/*.js
+tsconfig.tsbuildinfo
