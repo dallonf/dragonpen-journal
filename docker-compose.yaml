@@ -1,5 +1,13 @@
 version: '3.8'
 services:
+    postgres:
+        image: postgres:12-alpine
+        environment:
+            - POSTGRES_PASSWORD=password
+        volumes:
+            - journaling-psql:/var/lib/postgresql/data
+        ports:
+            - 5432:5432
     elasticsearch:
         image: elasticsearch:7.4.2
         volumes:
@@ -16,3 +24,4 @@ services:
 
 volumes:
     journaling-es:
+    journaling-psql:
