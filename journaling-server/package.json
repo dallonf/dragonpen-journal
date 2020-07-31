@@ -11,7 +11,9 @@
     "generate:types:gql:watch": "npm run generate:types:gql -- --watch \"src/schema.ts\"",
     "repl": "node -r ./scripts/repl.js",
     "build:ts": "npm run generate:types:gql && tsc",
-    "build:docker": "docker build ."
+    "build:docker": "docker build .",
+    "migrate:make": "knex migrate:make -x ts",
+    "migrate:latest": "knex migrate:latest"
   },
   "license": "UNLICENSED",
   "devDependencies": {
