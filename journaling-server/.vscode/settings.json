@@ -5,6 +5,8 @@
   },
   "files.exclude": {
     "src/**/*.js": true,
-    "index.js": true
+    "migrations/**/*.js": true,
+    "index.js": true,
+    "knexfile.js": true
   }
 }

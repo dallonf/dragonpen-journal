@@ -3,5 +3,7 @@ src/generated/*
 graphql.schema.json
 .env
 index.js
+knexfile.js
 src/**/*.js
+migrations/**/*.js
 tsconfig.tsbuildinfo

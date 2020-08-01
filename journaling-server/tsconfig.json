@@ -5,5 +5,11 @@
     "strict": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["index.ts", "src/**/*.ts"]
+  "include": [
+    "index.ts",
+    "knexfile.ts",
+    "migrations/**/*.ts",
+    "src/**/*.ts",
+    "types.d.ts"
+  ]
 }

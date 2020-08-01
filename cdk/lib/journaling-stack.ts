@@ -6,6 +6,7 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 import * as route53 from '@aws-cdk/aws-route53';
 import * as acm from '@aws-cdk/aws-certificatemanager';
 import * as iam from '@aws-cdk/aws-iam';
+import * as elb from '@aws-cdk/aws-elasticloadbalancingv2';
 import { EnvConfig, getDomainName } from './env';
 import { JournalingUi } from './journaling-ui';
 
@@ -41,46 +42,26 @@ export class JournalingStack extends cdk.Stack {
       vpc,
       allowAllOutbound: true,
     });
+    const dbMigrationSecruityGroup = new ec2.SecurityGroup(
+      this,
+      'dbMigrationGroup',
+      {
+        vpc,
+        allowAllOutbound: true,
+      }
+    );
     const apiSecurityGroup = new ec2.SecurityGroup(this, 'apiGroup', {
       vpc,
       allowAllOutbound: true,
     });
 
-    dbSecurityGroup.addIngressRule(
-      apiSecurityGroup,
-      ec2.Port.tcp(9200),
-      'API can access database'
-    );
+    // dbSecurityGroup.addIngressRule(
+    //   apiSecurityGroup,
+    //   ec2.Port.tcp(9200),
+    //   'API can access database'
+    // );
 
     if (props.enableExpensiveStuff) {
-      const ecDomain = new elasticsearch.CfnDomain(this, 'elasticsearch', {
-        // TODO: VPC
-        elasticsearchClusterConfig: {
-          instanceCount: 1,
-          instanceType: 't2.small.elasticsearch',
-          dedicatedMasterEnabled: false,
-        },
-        elasticsearchVersion: '7.4',
-        ebsOptions: {
-          ebsEnabled: true,
-          volumeSize: 10,
-          volumeType: 'standard',
-        },
-        accessPolicies: {
-          Version: '2012-10-17',
-          Statement: [
-            {
-              Effect: 'Allow',
-              Principal: {
-                AWS: '*',
-              },
-              Action: ['es:*'],
-              Resource: '*',
-            },
-          ],
-        },
-      });
-
       const ecsCluster = new ecs.Cluster(this, 'ecsCluster', {
         vpc,
         capacity: {
@@ -91,43 +72,99 @@ export class JournalingStack extends cdk.Stack {
         },
       });
 
-      const apiService = new ecsPatterns.ApplicationLoadBalancedEc2Service(
+      // const apiService = new ecsPatterns.ApplicationLoadBalancedEc2Service(
+      //   this,
+      //   'gqlservice',
+      //   {
+      //     cluster: ecsCluster,
+      //     cpu: 256,
+      //     memoryLimitMiB: 512,
+      //     taskImageOptions: {
+      //       image: ecs.ContainerImage.fromAsset('../journaling-server'),
+      //       containerPort: 4000,
+      //       environment: {
+      //         AUTH0_IDENTIFIER: props.envConfig.AUTH0_API_IDENTIFIER,
+      //         AUTH0_DOMAIN: props.envConfig.AUTH0_DOMAIN,
+      //         ELASTIC_NODE: `https://${ecDomain.attrDomainEndpoint}`,
+      //       },
+      //     },
+      //     domainName: apiDomain,
+      //     domainZone: zone,
+      //     certificate: acmCert,
+      //   }
+      // );
+      // apiService.service.connections.addSecurityGroup(apiSecurityGroup);
+
+      const dbLoadBalancer = new elb.NetworkLoadBalancer(
         this,
-        'gqlservice',
+        'dbLoadBalancer',
         {
-          cluster: ecsCluster,
-          cpu: 256,
-          memoryLimitMiB: 512,
-          taskImageOptions: {
-            image: ecs.ContainerImage.fromAsset('../journaling-server'),
-            containerPort: 4000,
-            environment: {
-              AUTH0_IDENTIFIER: props.envConfig.AUTH0_API_IDENTIFIER,
-              AUTH0_DOMAIN: props.envConfig.AUTH0_DOMAIN,
-              ELASTIC_NODE: `https://${ecDomain.attrDomainEndpoint}`,
-            },
+          vpc,
+          internetFacing: true,
+          vpcSubnets: {
+            subnetType: ec2.SubnetType.PUBLIC,
           },
-          domainName: apiDomain,
-          domainZone: zone,
-          certificate: acmCert,
         }
       );
-      apiService.service.connections.addSecurityGroup(apiSecurityGroup);
+      const dbService = new ecsPatterns.NetworkLoadBalancedEc2Service(
+        this,
+        'dbService',
+        {
+          cluster: ecsCluster,
+          memoryLimitMiB: 512,
+          publicLoadBalancer: false,
+          loadBalancer: dbLoadBalancer,
+          taskImageOptions: {
+            image: ecs.ContainerImage.fromRegistry('postgres:12-alpine'),
+            containerPort: 5432,
+            environment: {
+              // TODO: literally anything but this
+              POSTGRES_PASSWORD: 'password',
+            },
+          },
+          maxHealthyPercent: 100,
+        }
+      );
+      dbService.service.connections.addSecurityGroup(dbSecurityGroup);
 
-      new cdk.CfnOutput(this, 'gqlUrl', {
-        value: gqlUrl,
+      const serverImage = ecs.ContainerImage.fromAsset('../journaling-server');
+      const serverImageEnv = {
+        AUTH0_IDENTIFIER: props.envConfig.AUTH0_API_IDENTIFIER,
+        AUTH0_DOMAIN: props.envConfig.AUTH0_DOMAIN,
+        ELASTIC_NODE: `http://nope/`,
+        PG_HOST: dbService.loadBalancer.loadBalancerDnsName,
+        PG_DB: 'postgres',
+        PG_USERNAME: 'postgres',
+        PG_PASSWORD: 'password',
+      };
+
+      const dbMigrateTask = new ecs.Ec2TaskDefinition(this, 'dbMigrateTask');
+      dbMigrateTask.addContainer('dbMigrateContainer', {
+        memoryLimitMiB: 128,
+        image: serverImage,
+        command: ['npm', 'run', 'migrate:latest'],
+        environment: serverImageEnv,
+        logging: new ecs.AwsLogDriver({
+          streamPrefix: 'dbMigrate',
+        }),
       });
+
+      ecsCluster.connections.addSecurityGroup(dbMigrationSecruityGroup);
+
+      // new cdk.CfnOutput(this, 'gqlUrl', {
+      //   value: gqlUrl,
+      // });
     }
 
-    const ui = new JournalingUi(this, 'ui', {
-      envConfig: props.envConfig,
-      gqlUrl,
-      hostedZone: zone,
-      acmCert,
-    });
+    // const ui = new JournalingUi(this, 'ui', {
+    //   envConfig: props.envConfig,
+    //   gqlUrl,
+    //   hostedZone: zone,
+    //   acmCert,
+    // });
 
-    new cdk.CfnOutput(this, 'appUrl', {
-      value: ui.appUrl,
-    });
+    // new cdk.CfnOutput(this, 'appUrl', {
+    //   value: ui.appUrl,
+    // });
   }
 }
