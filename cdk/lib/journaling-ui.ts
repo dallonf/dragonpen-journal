@@ -35,7 +35,7 @@ export class JournalingUi extends cdk.Construct {
         .map((k) => `${k}="${envVars[k]}"`)
         .join(' ');
       childProcess.execSync(`${envVarsPrefix} npm run build`, {
-        cwd: path.resolve('../journaling-client'),
+        cwd: path.join(__dirname, '../../journaling-client'),
         stdio: 'inherit',
       });
     }
