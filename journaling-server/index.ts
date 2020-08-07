@@ -3,7 +3,6 @@ import * as qs from 'querystring';
 import type * as expressTypes from 'express';
 import axios from 'axios';
 import { makeExpressHandler } from './src/utils/lambdaToExpress';
-import { handler as helloHandler } from './src/handlers/hello';
 import { handler as gqlHandler } from './src/handlers/gql';
 
 const express = require('express') as () => expressTypes.Express;
@@ -13,7 +12,6 @@ app.get('/', (req, res) => {
   res.json({ healthy: true });
 });
 
-app.get('/hello', makeExpressHandler(helloHandler));
 app.post('/graphql', makeExpressHandler(gqlHandler));
 
 // TODO: this might be better for env

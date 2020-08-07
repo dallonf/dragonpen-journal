@@ -38,7 +38,9 @@ export class JournalingStack extends cdk.Stack {
     //   props.envConfig.ARN_HTTPS_CERT
     // );
 
-    new JournalingLambda(this, 'lambdaServer', {});
+    new JournalingLambda(this, 'lambdaServer', {
+      envConfig: props.envConfig,
+    });
 
     // new cdk.CfnOutput(this, 'gqlUrl', {
     //   value: gqlUrl,
