@@ -1,0 +1,9 @@
+{
+  "search.exclude": {
+    "lib/**/*.js": true
+  },
+  "files.exclude": {
+    "lib/**/*.js": true,
+    "lib/**/*.d.ts": true,
+  }
+}

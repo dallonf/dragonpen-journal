@@ -37,38 +37,9 @@ export class JournalingStack extends cdk.Stack {
     //   props.envConfig.ARN_HTTPS_CERT
     // );
 
-    if (props.enableExpensiveStuff) {
-      // const serverImageEnv = {
-      //   AUTH0_IDENTIFIER: props.envConfig.AUTH0_API_IDENTIFIER,
-      //   AUTH0_DOMAIN: props.envConfig.AUTH0_DOMAIN,
-      //   ELASTIC_NODE: `http://nope/`,
-      //   PG_HOST: dbService.loadBalancer.loadBalancerDnsName,
-      //   PG_DB: 'postgres',
-      //   PG_USERNAME: 'postgres',
-      //   PG_PASSWORD: 'password',
-      // };
-      // new cdk.CfnOutput(this, 'gqlUrl', {
-      //   value: gqlUrl,
-      // });
-    }
-
-    const serverDockerImage = new DockerImageAsset(this, 'serverDockerImage', {
-      directory: path.join(__dirname, '../../journaling-server'),
-    });
-
-    new cdk.CfnOutput(this, 'serverDockerImageUri', {
-      value: serverDockerImage.imageUri,
-    });
-
-    const serverConfigBucket = s3.Bucket.fromBucketName(this, 'serverConfigBucket', 'dallonf-ec2-config');
-
-    new s3Deployment.BucketDeployment(this, 'appDeployment', {
-      sources: [
-        s3Deployment.Source.asset(path.join(__dirname, '../server-config')),
-      ],
-      destinationBucket: serverConfigBucket,
-      prune: false
-    });
+    // new cdk.CfnOutput(this, 'gqlUrl', {
+    //   value: gqlUrl,
+    // });
 
     // const ui = new JournalingUi(this, 'ui', {
     //   envConfig: props.envConfig,
