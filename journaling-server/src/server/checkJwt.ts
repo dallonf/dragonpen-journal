@@ -1,5 +1,5 @@
 import { verify, GetPublicKeyOrSecret } from 'jsonwebtoken';
-import * as jwksRsa from 'jwks-rsa';
+import jwksRsa from 'jwks-rsa';
 import { User } from '../model/user';
 
 const client = jwksRsa({
@@ -16,7 +16,7 @@ const getKey: GetPublicKeyOrSecret = (header, callback) => {
 };
 
 interface DecodedJwt {
-  name: string;
+  name?: string;
   sub: string;
   iat: number;
   exp: number;

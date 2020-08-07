@@ -47,7 +47,7 @@ const journalEntryModelToGql = (model: JournalEntryModel): JournalEntryGql => ({
 
 export const resolvers: Resolvers<Context> = {
   Query: {
-    hello: () => 'hello, world!',
+    hello: (q, args, ctx) => `hello, ${ctx.user.name}!`,
     journalEntryById: async (q, args, ctx) => {
       if (!args.id) return null;
       const result = await ctx.model.journalEntry.read(args.id);

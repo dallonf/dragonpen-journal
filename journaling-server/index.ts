@@ -30,6 +30,7 @@ if (process.env.NODE_ENV === 'development') {
             client_id: process.env.AUTH0_TEST_CLIENT_ID,
             client_secret: process.env.AUTH0_TEST_CLIENT_SECRET,
             redirect_uri: `${baseUrl}/jwt`,
+            scope: 'openid profile email',
             code,
           }),
           {}
@@ -41,6 +42,7 @@ if (process.env.NODE_ENV === 'development') {
           response_type: 'code',
           client_id: process.env.AUTH0_TEST_CLIENT_ID,
           redirect_uri: `${baseUrl}/jwt`,
+          scope: 'openid profile email',
         })}`;
         res.redirect(url);
       }

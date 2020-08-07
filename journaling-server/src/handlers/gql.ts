@@ -6,6 +6,7 @@ import { graphql } from 'graphql';
 import { makeExecutableSchema } from 'apollo-server';
 import createModel from '../model';
 import { Context, typeDefs, resolvers } from '../schema';
+import { validateTokenAndGetUser } from '../server/checkJwt';
 
 const schema = makeExecutableSchema<Context>({
   typeDefs,
@@ -52,31 +53,56 @@ const tryParseBody = (
   };
 };
 
+const jsonResponse = (
+  input: Omit<APIGatewayProxyStructuredResultV2, 'body'> & { body: any }
+) => {
+  return {
+    ...input,
+    headers: { ...(input.headers || {}), 'Content-Type': 'application/json' },
+    body: JSON.stringify(input.body),
+  };
+};
+
 export const handler = async (
   event: APIGatewayProxyEventV2
 ): Promise<APIGatewayProxyStructuredResultV2> => {
   const tryBody = tryParseBody(event.body);
 
   if (!tryBody.success) {
-    return {
+    return jsonResponse({
       statusCode: 400,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ message: tryBody.errorMessage }),
-    };
+      body: { message: tryBody.errorMessage },
+    });
   }
 
   const { success, ...body } = tryBody;
 
-  const dummyUser = {
-    id: 'test-id',
-    name: 'Homer Simpson',
-  };
+  const jwtHeader = event.headers['authorization'];
+  if (!jwtHeader) {
+    return jsonResponse({
+      statusCode: 401,
+      body: { message: 'Must provide a JWT in the Authorization header' },
+    });
+  }
 
-  const model = createModel(dummyUser);
+  let user;
+  try {
+    user = await validateTokenAndGetUser(jwtHeader);
+  } catch (err) {
+    console.error(err);
+    return jsonResponse({
+      statusCode: 401,
+      body: {
+        message: err.message
+          ? `Error processing JWT: ${err.message}`
+          : 'Error processing JWT',
+      },
+    });
+  }
+
+  const model = createModel(user);
   const context: Context = {
-    user: dummyUser,
+    user,
     model,
   };
 
@@ -88,11 +114,8 @@ export const handler = async (
     body.variables,
     body.operationName
   );
-  return {
+  return jsonResponse({
     statusCode: 200,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(result),
-  };
+    body: result,
+  });
 };
