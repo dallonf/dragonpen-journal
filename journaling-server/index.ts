@@ -5,13 +5,61 @@ import { ApolloServer, AuthenticationError } from 'apollo-server-express';
 import axios from 'axios';
 import { typeDefs, resolvers, Context } from './src/schema';
 // import createModel from './src/model';
+import { handler as helloHandler } from './src/handlers/hello';
 import { validateTokenAndGetUser } from './src/server/checkJwt';
+import { APIGatewayProxyEventV2 } from 'aws-lambda';
 
 const express = require('express') as () => expressTypes.Express;
 
 const app = express();
 app.get('/', (req, res) => {
   res.json({ healthy: true });
+});
+
+app.get('/hello', (req, res, next) => {
+  // TODO: this could be refactored to be more reusable and more robust
+  const querystring = req.url.split('?')[1] ?? '';
+  helloHandler({
+    headers: (req.headers as unknown) as {
+      [key: string]: string;
+    },
+    isBase64Encoded: false,
+    rawPath: req.path,
+    rawQueryString: querystring,
+    requestContext: ({} as unknown) as APIGatewayProxyEventV2['requestContext'],
+    routeKey: req.path,
+    version: '1',
+    body: req.body,
+    cookies: req.cookies,
+    pathParameters: req.params,
+    queryStringParameters: (qs.parse(querystring) as unknown) as {
+      [key: string]: string;
+    },
+  })
+    .then((result) => {
+      const { headers, cookies, statusCode, body, isBase64Encoded } = result;
+      if (statusCode) {
+        res.status(statusCode);
+      }
+      if (cookies) {
+        throw new Error('cookies not supported');
+      }
+      if (isBase64Encoded) {
+        throw new Error('isBase64Encoded not supported');
+      }
+      if (headers) {
+        Object.keys(headers).forEach((k) => {
+          let val = headers[k];
+          if (typeof val == 'number' || typeof val == 'boolean') {
+            val = val.toString();
+          }
+          res.header(k, val);
+        });
+      }
+
+      res.send(body);
+    })
+    .catch(next);
 });
 
 // TODO: this might be better for env
