@@ -1,6 +1,5 @@
 import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
-import * as lambda from '@aws-cdk/aws-lambda';
 import * as lambdaNode from '@aws-cdk/aws-lambda-nodejs';
 import * as apiGateway from '@aws-cdk/aws-apigatewayv2';
 import { EnvConfig } from './env';
@@ -10,6 +9,8 @@ interface JournalingLambdaProps {
 }
 
 export class JournalingLambda extends cdk.Construct {
+  gqlUrl: string;
+
   constructor(scope: cdk.Construct, id: string, props: JournalingLambdaProps) {
     super(scope, id);
 
@@ -27,7 +28,19 @@ export class JournalingLambda extends cdk.Construct {
       environment,
     });
 
-    const api = new apiGateway.HttpApi(this, 'api');
+    const api = new apiGateway.HttpApi(this, 'api', {
+      corsPreflight: {
+        allowHeaders: ['Authorization'],
+        allowMethods: [
+          apiGateway.HttpMethod.GET,
+          apiGateway.HttpMethod.POST,
+          apiGateway.HttpMethod.HEAD,
+          apiGateway.HttpMethod.OPTIONS,
+        ],
+        allowOrigins: ['*'],
+        maxAge: cdk.Duration.days(10),
+      },
+    });
 
     api.addRoutes({
       path: '/graphql',
@@ -35,10 +48,10 @@ export class JournalingLambda extends cdk.Construct {
       integration: new apiGateway.LambdaProxyIntegration({ handler: graphql }),
     });
 
-    const gqlUrl = `${api.url}graphql`;
+    this.gqlUrl = `${api.url}graphql`;
 
     new cdk.CfnOutput(this, 'gqlApi', {
-      value: gqlUrl,
+      value: this.gqlUrl,
     });
   }
 }

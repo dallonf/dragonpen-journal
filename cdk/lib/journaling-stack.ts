@@ -24,37 +24,37 @@ export class JournalingStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props: JournalingStackProps) {
     super(scope, id, props);
 
-    const apiDomain = getDomainName(props.envConfig, 'api');
-    const gqlUrl = `https://${apiDomain}/graphql`;
+    // const apiDomain = getDomainName(props.envConfig, 'api');
+    // const gqlUrl = `https://${apiDomain}/graphql`;
 
-    // const zone = route53.HostedZone.fromHostedZoneAttributes(this, 'r53zone', {
-    //   zoneName: props.envConfig.DOMAIN,
-    //   hostedZoneId: props.envConfig.R53_HOSTED_ZONE_ID,
-    // });
+    const zone = route53.HostedZone.fromHostedZoneAttributes(this, 'r53zone', {
+      zoneName: props.envConfig.DOMAIN,
+      hostedZoneId: props.envConfig.R53_HOSTED_ZONE_ID,
+    });
 
-    // const acmCert = acm.Certificate.fromCertificateArn(
-    //   this,
-    //   'httpsCert',
-    //   props.envConfig.ARN_HTTPS_CERT
-    // );
+    const acmCert = acm.Certificate.fromCertificateArn(
+      this,
+      'httpsCert',
+      props.envConfig.ARN_HTTPS_CERT
+    );
 
-    new JournalingLambda(this, 'lambdaServer', {
+    const lambdaServer = new JournalingLambda(this, 'lambdaServer', {
       envConfig: props.envConfig,
     });
 
-    // new cdk.CfnOutput(this, 'gqlUrl', {
-    //   value: gqlUrl,
-    // });
+    new cdk.CfnOutput(this, 'gqlUrl', {
+      value: lambdaServer.gqlUrl,
+    });
 
-    // const ui = new JournalingUi(this, 'ui', {
-    //   envConfig: props.envConfig,
-    //   gqlUrl,
-    //   hostedZone: zone,
-    //   acmCert,
-    // });
+    const ui = new JournalingUi(this, 'ui', {
+      envConfig: props.envConfig,
+      gqlUrl: lambdaServer.gqlUrl,
+      hostedZone: zone,
+      acmCert,
+    });
 
-    // new cdk.CfnOutput(this, 'appUrl', {
-    //   value: ui.appUrl,
-    // });
+    new cdk.CfnOutput(this, 'appUrl', {
+      value: ui.appUrl,
+    });
   }
 }
