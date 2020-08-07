@@ -1,0 +1,14 @@
+services:
+  api-<% ENV %>:
+    image: <% IMAGE %>
+    environment:
+      - PORT=<% PORT %>
+      - AUTH0_IDENTIFIER=<% AUTH0_IDENTIFIER %>
+      - AUTH0_DOMAIN=<% AUTH0_DOMAIN %>
+      - AUTH0_DOMAIN=<% AUTH0_DOMAIN %>
+      - PG_HOST=postgres
+      - PG_DB=<% DATABASE %>
+      - PG_USERNAME=postgres
+      - PG_PASSWORD=password
+    ports:
+      - <% PORT %>:<% PORT %>

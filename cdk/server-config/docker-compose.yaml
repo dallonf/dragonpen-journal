@@ -3,14 +3,9 @@ services:
   postgres:
     image: postgres:12-alpine
     environment:
+        # TODO: please no
         - POSTGRES_PASSWORD=password
     volumes:
         - journaling-psql:/var/lib/postgresql/data
-  web-server:
-    image: 784929213598.dkr.ecr.us-east-1.amazonaws.com/aws-cdk/assets:a6f1d26559b04496583268c49deec2659dd9742ab217bb89573c34bb4ef5c22c
-    environment:
-      - PORT=80
-    ports:
-      - 80:80
 volumes:
   journaling-psql:
