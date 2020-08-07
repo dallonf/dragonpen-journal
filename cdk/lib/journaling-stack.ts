@@ -14,6 +14,7 @@ import * as s3Deployment from '@aws-cdk/aws-s3-deployment';
 import { EnvConfig, getDomainName } from './env';
 import { JournalingUi } from './journaling-ui';
 import { JournalingLambda } from './journaling-lambda';
+import { JournalingDynamoDB } from './journaling-dynamodb';
 
 interface JournalingStackProps extends cdk.StackProps {
   envConfig: EnvConfig;
@@ -38,8 +39,13 @@ export class JournalingStack extends cdk.Stack {
       props.envConfig.ARN_HTTPS_CERT
     );
 
+    const dynamo = new JournalingDynamoDB(this, 'dynamoTables', {
+      envConfig: props.envConfig,
+    });
+
     const lambdaServer = new JournalingLambda(this, 'lambdaServer', {
       envConfig: props.envConfig,
+      dynamoTableNames: dynamo.tableNames,
     });
 
     new cdk.CfnOutput(this, 'gqlUrl', {

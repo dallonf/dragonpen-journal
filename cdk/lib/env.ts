@@ -11,6 +11,7 @@ export interface EnvConfig {
   DOMAIN: string;
   HOST_PREFIX?: string;
   ARN_HTTPS_CERT: string;
+  DYNAMO_PREFIX?: string;
 }
 
 export const defaultEnv = parse(readFileSync('.env', 'utf-8')) as Partial<

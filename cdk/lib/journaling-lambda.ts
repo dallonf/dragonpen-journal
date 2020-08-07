@@ -3,9 +3,11 @@ import * as cdk from '@aws-cdk/core';
 import * as lambdaNode from '@aws-cdk/aws-lambda-nodejs';
 import * as apiGateway from '@aws-cdk/aws-apigatewayv2';
 import { EnvConfig } from './env';
+import { TableNames } from './journaling-dynamodb';
 
 interface JournalingLambdaProps {
   envConfig: EnvConfig;
+  dynamoTableNames: TableNames;
 }
 
 export class JournalingLambda extends cdk.Construct {
@@ -21,6 +23,7 @@ export class JournalingLambda extends cdk.Construct {
       AUTH0_IDENTIFIER: props.envConfig.AUTH0_API_IDENTIFIER,
       AUTH0_DOMAIN: props.envConfig.AUTH0_DOMAIN,
       ELASTIC_NODE: 'http://nope',
+      DYNAMO_TABLE_NAMES: JSON.stringify(props.dynamoTableNames),
     };
 
     const graphql = new lambdaNode.NodejsFunction(this, 'gqlFn', {

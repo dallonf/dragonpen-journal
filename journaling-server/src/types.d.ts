@@ -8,6 +8,9 @@ declare namespace NodeJS {
     readonly AUTH0_DOMAIN: string;
     /** URL to ElasticSearch node */
     readonly ELASTIC_NODE: string;
+    /** JSON-formatted map of table names in DynamoDB */
+    readonly DYNAMO_TABLE_NAMES: string;
+
     readonly REPL_USER_ID?: string;
     /** For /jwt flow. Only used in development. */
     readonly AUTH0_TEST_CLIENT_ID?: string;
