@@ -13,6 +13,7 @@ export interface Context {
 
 export const typeDefs = gql`
   type Query {
+    hello: String!
     journalEntryById(id: ID): JournalEntry
     journalEntries: [JournalEntry!]!
   }
@@ -46,6 +47,7 @@ const journalEntryModelToGql = (model: JournalEntryModel): JournalEntryGql => ({
 
 export const resolvers: Resolvers<Context> = {
   Query: {
+    hello: () => 'hello, world!',
     journalEntryById: async (q, args, ctx) => {
       if (!args.id) return null;
       const result = await ctx.model.journalEntry.read(args.id);

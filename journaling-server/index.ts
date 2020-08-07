@@ -1,13 +1,10 @@
 import * as http from 'http';
 import * as qs from 'querystring';
 import type * as expressTypes from 'express';
-import { ApolloServer, AuthenticationError } from 'apollo-server-express';
 import axios from 'axios';
-import { typeDefs, resolvers, Context } from './src/schema';
-// import createModel from './src/model';
+import { makeExpressHandler } from './src/utils/lambdaToExpress';
 import { handler as helloHandler } from './src/handlers/hello';
-import { validateTokenAndGetUser } from './src/server/checkJwt';
-import { APIGatewayProxyEventV2 } from 'aws-lambda';
+import { handler as gqlHandler } from './src/handlers/gql';
 
 const express = require('express') as () => expressTypes.Express;
 
@@ -16,51 +13,8 @@ app.get('/', (req, res) => {
   res.json({ healthy: true });
 });
 
-app.get('/hello', (req, res, next) => {
-  // TODO: this could be refactored to be more reusable and more robust
-  const querystring = req.url.split('?')[1] ?? '';
-  helloHandler({
-    headers: (req.headers as unknown) as {
-      [key: string]: string;
-    },
-    isBase64Encoded: false,
-    rawPath: req.path,
-    rawQueryString: querystring,
-    requestContext: ({} as unknown) as APIGatewayProxyEventV2['requestContext'],
-    routeKey: req.path,
-    version: '1',
-    body: req.body,
-    cookies: req.cookies,
-    pathParameters: req.params,
-    queryStringParameters: (qs.parse(querystring) as unknown) as {
-      [key: string]: string;
-    },
-  })
-    .then((result) => {
-      const { headers, cookies, statusCode, body, isBase64Encoded } = result;
-      if (statusCode) {
-        res.status(statusCode);
-      }
-      if (cookies) {
-        throw new Error('cookies not supported');
-      }
-      if (isBase64Encoded) {
-        throw new Error('isBase64Encoded not supported');
-      }
-      if (headers) {
-        Object.keys(headers).forEach((k) => {
-          let val = headers[k];
-          if (typeof val == 'number' || typeof val == 'boolean') {
-            val = val.toString();
-          }
-          res.header(k, val);
-        });
-      }
-
-      res.send(body);
-    })
-    .catch(next);
-});
+app.get('/hello', makeExpressHandler(helloHandler));
+app.post('/graphql', makeExpressHandler(gqlHandler));
 
 // TODO: this might be better for env
 const baseUrl = 'http://localhost:4000';
@@ -96,41 +50,7 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-// const apolloServer = new ApolloServer({
-//   typeDefs,
-//   resolvers: (resolvers as unknown) as {},
-//   context: async ({ req }) => {
-//     const jwtHeader = req.header('authorization');
-//     if (!jwtHeader) {
-//       throw new AuthenticationError(
-//         'Must provide a JWT in the Authorization header'
-//       );
-//     }
-//     let user;
-//     try {
-//       user = await validateTokenAndGetUser(jwtHeader);
-//     } catch (err) {
-//       throw Object.assign(
-//         new AuthenticationError(err.message || 'Error processing JWT'),
-//         {
-//           original: err,
-//         }
-//       );
-//     }
-
-//     const model = createModel(user);
-
-//     const context: Context = {
-//       user,
-//       model,
-//     };
-//     return context;
-//   },
-// });
-// apolloServer.applyMiddleware({ app, cors: true, path: '/graphql' });
 const httpServer = http.createServer(app);
-// apolloServer.installSubscriptionHandlers(httpServer);
-
 const port = process.env.PORT || 4000;
 httpServer.listen(port, () => {
   console.log(`Listening on http://localhost:${port}`);
