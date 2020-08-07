@@ -13,6 +13,7 @@ import * as s3 from '@aws-cdk/aws-s3';
 import * as s3Deployment from '@aws-cdk/aws-s3-deployment';
 import { EnvConfig, getDomainName } from './env';
 import { JournalingUi } from './journaling-ui';
+import { JournalingLambda } from './journaling-lambda';
 
 interface JournalingStackProps extends cdk.StackProps {
   envConfig: EnvConfig;
@@ -36,6 +37,8 @@ export class JournalingStack extends cdk.Stack {
     //   'httpsCert',
     //   props.envConfig.ARN_HTTPS_CERT
     // );
+
+    new JournalingLambda(this, 'lambdaServer', {});
 
     // new cdk.CfnOutput(this, 'gqlUrl', {
     //   value: gqlUrl,

@@ -25,6 +25,7 @@
     "typescript": "~3.7.2"
   },
   "dependencies": {
+    "@aws-cdk/aws-apigatewayv2": "^1.54.0",
     "@aws-cdk/aws-certificatemanager": "1.54.x",
     "@aws-cdk/aws-cloudfront": "1.54.x",
     "@aws-cdk/aws-codebuild": "1.54.x",
@@ -35,6 +36,8 @@
     "@aws-cdk/aws-elasticloadbalancingv2": "^1.54.0",
     "@aws-cdk/aws-elasticsearch": "1.54.x",
     "@aws-cdk/aws-iam": "^1.54.0",
+    "@aws-cdk/aws-lambda": "^1.54.0",
+    "@aws-cdk/aws-lambda-nodejs": "^1.54.0",
     "@aws-cdk/aws-route53": "1.54.x",
     "@aws-cdk/aws-route53-targets": "1.54.x",
     "@aws-cdk/aws-s3": "1.54.x",

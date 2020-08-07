@@ -7,3 +7,4 @@ knexfile.js
 src/**/*.js
 migrations/**/*.js
 tsconfig.tsbuildinfo
+.parcel-cache
