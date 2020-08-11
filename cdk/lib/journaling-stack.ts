@@ -25,9 +25,6 @@ export class JournalingStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props: JournalingStackProps) {
     super(scope, id, props);
 
-    // const apiDomain = getDomainName(props.envConfig, 'api');
-    // const gqlUrl = `https://${apiDomain}/graphql`;
-
     const zone = route53.HostedZone.fromHostedZoneAttributes(this, 'r53zone', {
       zoneName: props.envConfig.DOMAIN,
       hostedZoneId: props.envConfig.R53_HOSTED_ZONE_ID,
@@ -46,6 +43,8 @@ export class JournalingStack extends cdk.Stack {
     const lambdaServer = new JournalingLambda(this, 'lambdaServer', {
       envConfig: props.envConfig,
       dynamoTableNames: dynamo.tableNames,
+      hostedZone: zone,
+      acmCert,
     });
 
     new cdk.CfnOutput(this, 'gqlUrl', {
