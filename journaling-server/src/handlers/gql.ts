@@ -54,6 +54,7 @@ const tryParseBody = (
     success: true,
     query: json.query,
     operationName: json.operationName,
+    variables: json.variables,
   };
 };
 

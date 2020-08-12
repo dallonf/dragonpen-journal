@@ -35,7 +35,7 @@ export default (dynamo: DynamoDBClient, user: User) => {
         IndexName: 'TimestampIndex',
         KeyConditionExpression: 'UserId = :userId',
         ExpressionAttributeValues: {
-          userId: { S: user.id },
+          ':userId': { S: user.id },
         },
         ScanIndexForward: false,
       })
