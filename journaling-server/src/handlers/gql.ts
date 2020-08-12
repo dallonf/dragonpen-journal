@@ -78,39 +78,30 @@ export const handler = async (
   const { success, ...body } = tryBody;
 
   const jwtHeader = event.headers['authorization'];
-  if (!jwtHeader) {
-    return jsonResponse({
-      statusCode: 401,
-      body: { message: 'Must provide a JWT in the Authorization header' },
-    });
-  }
-
   let user;
-  try {
-    user = await validateTokenAndGetUser(jwtHeader);
-  } catch (err) {
-    console.error(err);
-    return jsonResponse({
-      statusCode: 401,
-      body: {
-        message: err.message
-          ? `Error processing JWT: ${err.message}`
-          : 'Error processing JWT',
-      },
-    });
+  if (jwtHeader) {
+    try {
+      user = await validateTokenAndGetUser(jwtHeader);
+    } catch (err) {
+      console.error(err);
+      return jsonResponse({
+        statusCode: 401,
+        body: {
+          message: err.message
+            ? `Error processing JWT: ${err.message}`
+            : 'Error processing JWT',
+        },
+      });
+    }
   }
 
-  const model = createModel(user);
-  const context: Context = {
-    user,
-    model,
-  };
+  const model = createModel(user ?? null);
 
   const result = await graphql(
     schema,
     body.query,
     null,
-    context,
+    model,
     body.variables,
     body.operationName
   );

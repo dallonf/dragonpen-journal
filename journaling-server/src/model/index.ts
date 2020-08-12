@@ -12,7 +12,7 @@ export { User };
 export type Model = ReturnType<typeof makeModel>;
 
 const makeModel = (
-  user: User,
+  user: User | null,
   { esClient, dynamoClient } = {} as {
     esClient?: Client;
     dynamoClient?: DynamoDBClient;
@@ -21,9 +21,15 @@ const makeModel = (
   esClient = esClient ?? makeClient();
   dynamoClient = dynamoClient ?? makeDynamoClient();
 
-  return {
-    journalEntry: journalEntry(esClient, dynamoClient, user),
-  };
+  if (user) {
+    return {
+      authenticated: true,
+      user,
+      journalEntry: journalEntry(esClient, dynamoClient, user),
+    } as const;
+  } else {
+    return { authenticated: false } as const;
+  }
 };
 
 export default makeModel;

@@ -4,12 +4,8 @@ import {
   Resolvers,
   JournalEntry as JournalEntryGql,
 } from './generated/graphql';
-import { User } from './model/user';
 
-export interface Context {
-  user: User;
-  model: Model;
-}
+export type Context = Model;
 
 export const typeDefs = gql`
   type Query {
@@ -47,23 +43,34 @@ const journalEntryModelToGql = (model: JournalEntryModel): JournalEntryGql => ({
 
 export const resolvers: Resolvers<Context> = {
   Query: {
-    hello: (q, args, ctx) => `hello, ${ctx.user.name}!`,
+    hello: (q, args, ctx) =>
+      ctx.authenticated ? `hello, ${ctx.user.name}!` : 'hello, world!',
     journalEntryById: async (q, args, ctx) => {
       if (!args.id) return null;
-      const result = await ctx.model.journalEntry.read(args.id);
+      if (!ctx.authenticated) {
+        throw new Error('Must be authenticated to fetch journal entries');
+      }
+      const result = await ctx.journalEntry.read(args.id);
       if (!result) return null;
       return {
         ...result,
         timestamp: result.timestamp.toISOString(),
       };
     },
-    journalEntries: async (q, args, ctx) =>
-      (await ctx.model.journalEntry.readList()).map(journalEntryModelToGql),
+    journalEntries: async (q, args, ctx) => {
+      if (!ctx.authenticated) {
+        throw new Error('Must be authenticated to fetch journal entries');
+      }
+      return (await ctx.journalEntry.readList()).map(journalEntryModelToGql);
+    },
   },
   Mutation: {
     journalEntrySave: async (m, args, ctx) => {
       const { input } = args;
-      const result = await ctx.model.journalEntry.save({
+      if (!ctx.authenticated) {
+        throw new Error('Must be authenticated to save journal entries');
+      }
+      const result = await ctx.journalEntry.save({
         id: input.id,
         timestamp: new Date(input.timestamp),
         text: input.text,
