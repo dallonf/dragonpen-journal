@@ -2,7 +2,11 @@ import {
   APIGatewayProxyEventV2,
   APIGatewayProxyStructuredResultV2,
 } from 'aws-lambda';
-import { graphql } from 'graphql';
+import {
+  graphql,
+  formatError as formatGqlError,
+  GraphQLFormattedError,
+} from 'graphql';
 import { makeExecutableSchema } from 'apollo-server';
 import createModel from '../model';
 import { Context, typeDefs, resolvers } from '../schema';
@@ -105,6 +109,19 @@ export const handler = async (
     body.variables,
     body.operationName
   );
+
+  const errors = result.errors;
+  let resultBody: {
+    data: typeof result['data'];
+    errors?: GraphQLFormattedError[];
+  } = { data: result.data };
+  if (errors) {
+    resultBody.errors = errors.map((x) => {
+      console.error(x);
+      return formatGqlError(x);
+    });
+  }
+
   return jsonResponse({
     statusCode: 200,
     body: result,
