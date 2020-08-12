@@ -9,3 +9,8 @@ new JournalingStack(app, 'JournalingStackStaging', {
   envConfig: getEnvConfig('staging'),
   enableExpensiveStuff: true,
 });
+new JournalingStack(app, 'JournalingStackProduction', {
+  envConfig: getEnvConfig('production'),
+  enableExpensiveStuff: true,
+});
+

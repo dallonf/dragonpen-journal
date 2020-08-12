@@ -1,9 +1,10 @@
 {
   "search.exclude": {
-    "lib/**/*.js": true
+    "{lib,bin}/**/*.js": true,
+    "{lib,bin}/**/*.d.ts": true,
   },
   "files.exclude": {
-    "lib/**/*.js": true,
-    "lib/**/*.d.ts": true,
+    "{lib,bin}/**/*.js": true,
+    "{lib,bin}/**/*.d.ts": true,
   }
 }

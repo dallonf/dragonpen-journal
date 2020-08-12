@@ -1,7 +1,7 @@
 import { parse } from 'dotenv';
 import { readFileSync } from 'fs';
 
-type EnvironmentName = 'staging';
+type EnvironmentName = 'staging' | 'production';
 
 export interface EnvConfig {
   AUTH0_API_IDENTIFIER: string;
