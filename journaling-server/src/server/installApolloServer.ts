@@ -36,11 +36,7 @@ export const installApolloServer = ({
 
       const model = createModel(user);
 
-      const context: Context = {
-        user,
-        model,
-      };
-      return context;
+      return model;
     },
   });
   apolloServer.applyMiddleware({ app, cors: true, path: '/graphql' });

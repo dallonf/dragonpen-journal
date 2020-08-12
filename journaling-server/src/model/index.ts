@@ -1,5 +1,3 @@
-import { Client } from '@elastic/elasticsearch';
-import { makeClient } from './elastic-client';
 import {
   DynamoDBClient,
   makeClient as makeDynamoClient,
@@ -13,19 +11,17 @@ export type Model = ReturnType<typeof makeModel>;
 
 const makeModel = (
   user: User | null,
-  { esClient, dynamoClient } = {} as {
-    esClient?: Client;
+  { dynamoClient } = {} as {
     dynamoClient?: DynamoDBClient;
   }
 ) => {
-  esClient = esClient ?? makeClient();
   dynamoClient = dynamoClient ?? makeDynamoClient();
 
   if (user) {
     return {
       authenticated: true,
       user,
-      journalEntry: journalEntry(esClient, dynamoClient, user),
+      journalEntry: journalEntry(dynamoClient, user),
     } as const;
   } else {
     return { authenticated: false } as const;

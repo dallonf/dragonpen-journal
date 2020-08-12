@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"name": "journaling-server",
+			"path": "journaling-server"
+		},
+		{
+			"name": "journaling-client",
+			"path": "journaling-client"
+		},
+		{
+			"name": "cdk",
+			"path": "cdk"
+		}
+	],
+	"settings": {}
+}

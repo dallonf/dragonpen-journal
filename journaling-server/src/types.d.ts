@@ -6,8 +6,6 @@ declare namespace NodeJS {
     /** Identifier of Auth0 API for this app */
     readonly AUTH0_IDENTIFIER: string;
     readonly AUTH0_DOMAIN: string;
-    /** URL to ElasticSearch node */
-    readonly ELASTIC_NODE: string;
     /** JSON-formatted map of table names in DynamoDB */
     readonly DYNAMO_TABLE_NAMES: string;
 

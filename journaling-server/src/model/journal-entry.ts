@@ -1,54 +1,11 @@
-import { Client, RequestParams } from '@elastic/elasticsearch';
 import DynamoDB from 'aws-sdk/clients/dynamodb';
 import { User } from './user';
-import { sanitizeIndexName } from './util';
 import { DynamoDBClient } from './dynamo-client';
-
-export type JournalEntryBody = Source;
 
 export interface JournalEntry {
   id: string;
   timestamp: Date;
   text: string;
-}
-
-interface Source {
-  timestamp: Date;
-  text: string;
-}
-
-type Overwrite<TOriginal, TNew> = Omit<TOriginal, keyof TNew> & TNew;
-type ApiSource = Overwrite<
-  Source,
-  {
-    timestamp: string;
-  }
->;
-
-type SaveRequestBody = Source;
-
-type GetResponse = {
-  _index: string;
-  _id: string;
-} & (
-  | {
-      found: true;
-      _source: ApiSource;
-    }
-  | { found: false }
-);
-
-interface SearchResponse {
-  hits: {
-    total: {
-      value: number;
-    };
-    hits: {
-      _index: string;
-      _id: string;
-      _source: ApiSource;
-    }[];
-  };
 }
 
 interface DynamoJournalEntry {
@@ -59,30 +16,32 @@ interface DynamoJournalEntry {
 }
 type JournalEntryKey = Pick<DynamoJournalEntry, 'UserId' | 'Id'>;
 
-export default (client: Client, dynamo: DynamoDBClient, user: User) => {
-  const index = `user_${sanitizeIndexName(user.id)}_journal_entry`;
+function convertFromDynamo(
+  item: DynamoJournalEntry | DynamoDB.AttributeMap
+): JournalEntry {
+  item = item as DynamoJournalEntry;
+  return {
+    id: item.Id.S,
+    timestamp: new Date(parseInt(item.Timestamp.N, 10)),
+    text: item.Text.S,
+  };
+}
 
+export default (dynamo: DynamoDBClient, user: User) => {
   const readList = async (): Promise<JournalEntry[]> => {
-    let result;
-    try {
-      result = await client.search<SearchResponse, RequestParams.Search>({
-        index,
-        size: 100,
-        sort: 'timestamp:desc',
-      });
-    } catch (err) {
-      if (err.meta && err.meta.statusCode === 404) {
-        return [];
-      } else {
-        throw err;
-      }
-    }
+    const result = await dynamo.api
+      .query({
+        TableName: dynamo.tableNames.JournalEntries,
+        IndexName: 'TimestampIndex',
+        KeyConditionExpression: 'UserId = :userId',
+        ExpressionAttributeValues: {
+          userId: { S: user.id },
+        },
+        ScanIndexForward: false,
+      })
+      .promise();
 
-    return result.body.hits.hits.map((x) => ({
-      id: x._id,
-      timestamp: new Date(x._source.timestamp),
-      text: x._source.text,
-    }));
+    return result.Items?.map(convertFromDynamo) ?? [];
   };
 
   const read = async (id: string): Promise<JournalEntry | null> => {
@@ -100,11 +59,7 @@ export default (client: Client, dynamo: DynamoDBClient, user: User) => {
 
     const item = (result.Item as unknown) as DynamoJournalEntry | null;
     if (item) {
-      return {
-        id: item.Id.S,
-        timestamp: new Date(parseInt(item.Timestamp.N, 10)),
-        text: item.Text.S,
-      };
+      return convertFromDynamo(item);
     } else {
       return null;
     }

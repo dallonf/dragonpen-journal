@@ -2,12 +2,15 @@ import * as http from 'http';
 import * as qs from 'querystring';
 import type * as expressTypes from 'express';
 import axios from 'axios';
+import cors from 'cors';
 import { makeExpressHandler } from './src/utils/lambdaToExpress';
 import { handler as gqlHandler } from './src/handlers/gql';
 
 const express = require('express') as () => expressTypes.Express;
 
 const app = express();
+app.use(cors());
+
 app.get('/', (req, res) => {
   res.json({ healthy: true });
 });
