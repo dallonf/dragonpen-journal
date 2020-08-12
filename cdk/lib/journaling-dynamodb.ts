@@ -6,12 +6,12 @@ export interface JournalingDynamoDBProps {
   envConfig: EnvConfig;
 }
 
-export interface TableNames {
-  JournalEntries: string;
+export interface TableCollection {
+  JournalEntries: dynamodb.Table;
 }
 
 export class JournalingDynamoDB extends cdk.Construct {
-  tableNames: TableNames;
+  tables: TableCollection;
 
   constructor(
     scope: cdk.Construct,
@@ -34,8 +34,8 @@ export class JournalingDynamoDB extends cdk.Construct {
       sortKey: { name: 'Timestamp', type: dynamodb.AttributeType.NUMBER },
     });
 
-    this.tableNames = {
-      JournalEntries: journalEntriesTable.tableName,
+    this.tables = {
+      JournalEntries: journalEntriesTable,
     };
   }
 }

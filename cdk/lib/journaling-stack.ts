@@ -42,7 +42,7 @@ export class JournalingStack extends cdk.Stack {
 
     const lambdaServer = new JournalingLambda(this, 'lambdaServer', {
       envConfig: props.envConfig,
-      dynamoTableNames: dynamo.tableNames,
+      dynamo,
       hostedZone: zone,
       acmCert,
     });
