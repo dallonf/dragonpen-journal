@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Dragonpen",
+  "name": "Dragonpen Journal",
   "icons": [
     {
       "src": "favicon.ico",
@@ -19,7 +19,7 @@
     }
   ],
   "start_url": ".",
-  "display": "standalone",
-  "theme_color": "#000000",
+  "display": "minimal-ui",
+  "theme_color": "#d32f2f",
   "background_color": "#ffffff"
 }
