@@ -11,6 +11,9 @@
 		{
 			"name": "cdk",
 			"path": "cdk"
+		},
+		{
+			"path": ".github"
 		}
 	],
 	"settings": {}
