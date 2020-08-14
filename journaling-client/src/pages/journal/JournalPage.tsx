@@ -73,7 +73,7 @@ const JournalPage: React.FC = () => {
   };
 
   return (
-    <Layout pageTitle="Journal">
+    <Layout pageTitle="Journal" loading={loading}>
       <JournalPageMainAreaContainer maxWidth="md">
         {inner}
         <ActuallyFloatingActionButton

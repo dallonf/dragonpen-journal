@@ -94,16 +94,17 @@ const EditPage: React.FC = () => {
 
   const [timeModalOpen, setTimeModalOpen] = React.useState(false);
 
-  const [mutate] = useMutation<EditPageMutation, EditPageMutationVariables>(
-    EDIT_PAGE_MUTATION
-  );
+  const [mutate, { loading: mutating }] = useMutation<
+    EditPageMutation,
+    EditPageMutationVariables
+  >(EDIT_PAGE_MUTATION);
 
   // TODO: these update functions are not very resilient to rapid state changes
   // esp. consider React concurrent mode
 
   const updateTimestamp = (newTime: Date) => {
     if (!formState) return;
-    
+
     const newState = {
       ...formState,
       timestamp: newTime,
@@ -138,7 +139,11 @@ const EditPage: React.FC = () => {
   };
 
   return (
-    <Layout pageTitle="Edit Entry" backLink="/">
+    <Layout
+      pageTitle="Edit Entry"
+      backLink="/"
+      loading={query.loading || mutating}
+    >
       <MainAreaContainer maxWidth="md">
         <FlushButtonContainer mb={2}>
           <ButtonWithNormalText
