@@ -3,7 +3,13 @@ import styled from '@emotion/styled/macro';
 import { Button, Box } from '@material-ui/core';
 import Editor from 'rich-markdown-editor';
 import * as dateFns from 'date-fns';
-import { gql, useQuery, NetworkStatus, useMutation } from '@apollo/client';
+import {
+  gql,
+  useQuery,
+  NetworkStatus,
+  useMutation,
+  ApolloClient,
+} from '@apollo/client';
 import { useParams } from 'react-router-dom';
 import { styledWithTheme } from '../../utils';
 import Layout, { MainAreaContainer } from '../../framework/Layout';
@@ -24,6 +30,16 @@ const EDIT_PAGE_QUERY = gql`
     }
   }
 `;
+
+export const prepBlankEntry = (client: ApolloClient<unknown>, id: string) => {
+  client.writeQuery<EditPageQuery, EditPageQueryVariables>({
+    query: EDIT_PAGE_QUERY,
+    variables: { id },
+    data: {
+      journalEntryById: null,
+    },
+  });
+};
 
 const EDIT_PAGE_MUTATION = gql`
   mutation EditPageMutation($input: JournalEntrySaveInput!) {
@@ -61,7 +77,7 @@ const EditPage: React.FC = () => {
   const query = useQuery<EditPageQuery, EditPageQueryVariables>(
     EDIT_PAGE_QUERY,
     {
-      fetchPolicy: 'network-only',
+      fetchPolicy: 'cache-first',
       variables: { id: params.id },
     }
   );
