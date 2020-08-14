@@ -20,7 +20,20 @@ export const createClient = ({
 
   const client = new ApolloClient({
     link: setAuthorizationLink.concat(httpLink),
-    cache: new InMemoryCache(),
+    cache: new InMemoryCache({
+      typePolicies: {
+        Query: {
+          fields: {
+            journalEntryById: {
+              read: (q, { args, toReference }) =>
+                args!.id
+                  ? toReference({ __typename: 'JournalEntry', id: args!.id })
+                  : null,
+            },
+          },
+        },
+      },
+    }),
   });
 
   return client;
