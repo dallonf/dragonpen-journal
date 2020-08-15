@@ -43,7 +43,7 @@ const JournalPage: React.FC = () => {
 
   const { loading, error, data, client } = useQuery<JournalPageQuery>(QUERY, {
     fetchPolicy: 'network-only',
-    pollInterval: 1000,
+    pollInterval: 10000,
   });
 
   let inner;

@@ -110,10 +110,9 @@ const EditPage: React.FC = () => {
 
   const [timeModalOpen, setTimeModalOpen] = React.useState(false);
 
-  const [mutate, { loading: mutating }] = useMutation<
-    EditPageMutation,
-    EditPageMutationVariables
-  >(EDIT_PAGE_MUTATION);
+  const [mutate] = useMutation<EditPageMutation, EditPageMutationVariables>(
+    EDIT_PAGE_MUTATION
+  );
 
   // TODO: these update functions are not very resilient to rapid state changes
   // esp. consider React concurrent mode
@@ -155,11 +154,7 @@ const EditPage: React.FC = () => {
   };
 
   return (
-    <Layout
-      pageTitle="Edit Entry"
-      backLink="/"
-      loading={query.loading || mutating}
-    >
+    <Layout pageTitle="Edit Entry" backLink="/" loading={query.loading}>
       <MainAreaContainer maxWidth="md">
         <FlushButtonContainer mb={2}>
           <ButtonWithNormalText
