@@ -77,7 +77,7 @@ const EditPage: React.FC = () => {
   const query = useQuery<EditPageQuery, EditPageQueryVariables>(
     EDIT_PAGE_QUERY,
     {
-      fetchPolicy: 'cache-first',
+      fetchPolicy: 'network-only',
       variables: { id: params.id },
     }
   );
