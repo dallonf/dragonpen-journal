@@ -9,6 +9,7 @@ import * as dateFns from 'date-fns';
 import { styledWithTheme } from '../../utils';
 import Layout, { MainAreaContainer } from '../../framework/Layout';
 import { JournalPageQuery } from '../../generated/gql-types';
+import { prepBlankEntry as prepBlankEntryForEditPage } from '../edit/EditPage';
 import DaySection from './DaySection';
 import JournalEntryListItem, {
   JOURNAL_ENTRY_LIST_ITEM_FRAGMENT,
@@ -40,8 +41,9 @@ const ActuallyFloatingActionButton = styledWithTheme(Fab)((props) => ({
 const JournalPage: React.FC = () => {
   const history = useHistory();
 
-  const { loading, error, data } = useQuery<JournalPageQuery>(QUERY, {
+  const { loading, error, data, client } = useQuery<JournalPageQuery>(QUERY, {
     fetchPolicy: 'network-only',
+    pollInterval: 10000,
   });
 
   let inner;
@@ -69,7 +71,9 @@ const JournalPage: React.FC = () => {
   }
 
   const handleAddClick = () => {
-    history.push(`/edit/${uuidv4()}`);
+    const id = uuidv4();
+    prepBlankEntryForEditPage(client, id);
+    history.push(`/edit/${id}`);
   };
 
   return (

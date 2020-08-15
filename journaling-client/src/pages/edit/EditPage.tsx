@@ -3,7 +3,13 @@ import styled from '@emotion/styled/macro';
 import { Button, Box } from '@material-ui/core';
 import Editor from 'rich-markdown-editor';
 import * as dateFns from 'date-fns';
-import { gql, useQuery, NetworkStatus, useMutation } from '@apollo/client';
+import {
+  gql,
+  useQuery,
+  NetworkStatus,
+  useMutation,
+  ApolloClient,
+} from '@apollo/client';
 import { useParams } from 'react-router-dom';
 import { styledWithTheme } from '../../utils';
 import Layout, { MainAreaContainer } from '../../framework/Layout';
@@ -24,6 +30,16 @@ const EDIT_PAGE_QUERY = gql`
     }
   }
 `;
+
+export const prepBlankEntry = (client: ApolloClient<unknown>, id: string) => {
+  client.writeQuery<EditPageQuery, EditPageQueryVariables>({
+    query: EDIT_PAGE_QUERY,
+    variables: { id },
+    data: {
+      journalEntryById: null,
+    },
+  });
+};
 
 const EDIT_PAGE_MUTATION = gql`
   mutation EditPageMutation($input: JournalEntrySaveInput!) {
@@ -94,10 +110,9 @@ const EditPage: React.FC = () => {
 
   const [timeModalOpen, setTimeModalOpen] = React.useState(false);
 
-  const [mutate, { loading: mutating }] = useMutation<
-    EditPageMutation,
-    EditPageMutationVariables
-  >(EDIT_PAGE_MUTATION);
+  const [mutate] = useMutation<EditPageMutation, EditPageMutationVariables>(
+    EDIT_PAGE_MUTATION
+  );
 
   // TODO: these update functions are not very resilient to rapid state changes
   // esp. consider React concurrent mode
@@ -139,11 +154,7 @@ const EditPage: React.FC = () => {
   };
 
   return (
-    <Layout
-      pageTitle="Edit Entry"
-      backLink="/"
-      loading={query.loading || mutating}
-    >
+    <Layout pageTitle="Edit Entry" backLink="/" loading={query.loading}>
       <MainAreaContainer maxWidth="md">
         <FlushButtonContainer mb={2}>
           <ButtonWithNormalText
