@@ -30,4 +30,4 @@ jobs:
         working-directory: ./cdk
       - name: Deploy
         run: BUILD_UI=1 npx cdk deploy JournalingStackStaging --require-approval=never
-        working-directory: ./journaling-server
+        working-directory: ./cdk
