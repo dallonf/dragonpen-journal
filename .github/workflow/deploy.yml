@@ -1,0 +1,21 @@
+name: Deploy
+
+on:
+  push:
+    branches: [ develop ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+      - name: Install deps for CDK
+        run: npm ci
+        working-directory: ./cdk
+      - name: Diff
+        run: npm run diff -- JournalingAppStaging
+        working-directory: ./cdk
