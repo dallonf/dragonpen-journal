@@ -16,6 +16,12 @@ jobs:
       - name: Install deps for CDK
         run: npm ci
         working-directory: ./cdk
+      - name: Install deps for server
+        run: npm ci
+        working-directory: ./journaling-server
+      - name: Install deps for client
+        run: npm ci
+        working-directory: ./journaling-client
       - name: Diff
         run: npm run diff -- JournalingAppStaging
         working-directory: ./cdk
