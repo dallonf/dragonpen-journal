@@ -29,5 +29,5 @@ jobs:
         run: npm ci
         working-directory: ./journaling-client
       - name: Diff
-        run: npm run build && npx cdk deploy JournalStackStaging --require-approval=never
+        run: npm run build && BUILD_UI=1 npx cdk deploy JournalingStackStaging --require-approval=never
         working-directory: ./cdk
