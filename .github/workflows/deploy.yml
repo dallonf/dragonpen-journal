@@ -23,5 +23,5 @@ jobs:
         run: npm ci
         working-directory: ./journaling-client
       - name: Diff
-        run: npm run diff -- JournalingAppStaging
+        run: npm run diff -- JournalingStackStaging
         working-directory: ./cdk
