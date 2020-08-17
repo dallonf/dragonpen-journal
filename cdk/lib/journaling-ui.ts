@@ -80,7 +80,7 @@ export class JournalingUi extends cdk.Construct {
           command: [
             'bash',
             '-c',
-            'npm install && npm run build && cp -R build/* /asset-output',
+            'npm ci && npm run build && cp -R build/* /asset-output',
           ],
           environment: envVars,
         },
