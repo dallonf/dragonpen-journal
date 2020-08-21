@@ -6,6 +6,10 @@ const yup = require('yup');
 const envSchema = yup.object().required().shape({
   ENV_NAME: yup.string().required(),
   EPHEMERAL_DATA: yup.string(),
+  // The port for the API on localhost
+  LOCALHOST_API: yup.string(),
+  // The port for the API on localhost
+  LOCALHOST_APP: yup.string(),
 
   DEBUG: yup.string(),
 
@@ -19,7 +23,13 @@ const sourceEnv = envSchema.cast(process.env);
 console.log('Collecting environment information');
 
 const DOMAIN_NAME = 'dallonf.com';
-const { ENV_NAME, DEBUG, EPHEMERAL_DATA } = sourceEnv;
+const {
+  ENV_NAME,
+  DEBUG,
+  EPHEMERAL_DATA,
+  LOCALHOST_API,
+  LOCALHOST_APP,
+} = sourceEnv;
 const hostPrefix = ENV_NAME == 'production' ? null : ENV_NAME;
 
 const getDomainName = (...names) =>
@@ -29,8 +39,12 @@ const getDomainName = (...names) =>
 
 const getDynamoTableName = (name) => `${name}-${ENV_NAME}`;
 
-const apiDomain = getDomainName('api');
-const appDomain = getDomainName();
+const apiDomain = LOCALHOST_API
+  ? `localhost:${LOCALHOST_API}`
+  : getDomainName('api');
+const appDomain = LOCALHOST_APP
+  ? `localhost:${LOCALHOST_APP}`
+  : getDomainName();
 
 const dynamoTableNames = Object.fromEntries(
   ['JournalEntries'].map((x) => [x, getDynamoTableName(x)])
@@ -47,9 +61,9 @@ const output = {
     'arn:aws:acm:us-east-1:784929213598:certificate/3c1b588a-eb2a-4fb5-9f0c-7113796c9884',
 
   appDomain,
-  appUrl: `https://${appDomain}`,
+  appUrl: `${LOCALHOST_APP ? 'http' : 'https'}://${appDomain}`,
   apiDomain,
-  gqlUrl: `https://${apiDomain}/graphql`,
+  gqlUrl: `${LOCALHOST_API ? 'http' : 'https'}://${apiDomain}/graphql`,
   ephemeralData: Boolean(EPHEMERAL_DATA),
 
   dynamoTableNames,
