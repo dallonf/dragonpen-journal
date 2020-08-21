@@ -20,14 +20,13 @@ export class JournalingDynamoDB extends cdk.Construct {
   ) {
     super(scope, id);
 
-    const journalEntriesName = props.envConfig.DYNAMO_PREFIX
-      ? `${props.envConfig.DYNAMO_PREFIX}_JournalEntries`
-      : undefined;
-
     const journalEntriesTable = new dynamodb.Table(this, 'JournalEntries', {
-      tableName: journalEntriesName,
+      tableName: props.envConfig.dynamoTableNames.JournalEntries,
       partitionKey: { name: 'UserId', type: dynamodb.AttributeType.STRING },
       sortKey: { name: 'Id', type: dynamodb.AttributeType.STRING },
+      removalPolicy: props.envConfig.ephemeralData
+        ? cdk.RemovalPolicy.DESTROY
+        : cdk.RemovalPolicy.RETAIN,
     });
     journalEntriesTable.addLocalSecondaryIndex({
       indexName: 'TimestampIndex',

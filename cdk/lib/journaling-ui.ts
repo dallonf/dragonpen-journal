@@ -8,22 +8,17 @@ import * as cloudfront from '@aws-cdk/aws-cloudfront';
 import * as route53 from '@aws-cdk/aws-route53';
 import * as route53Targets from '@aws-cdk/aws-route53-targets';
 import * as acm from '@aws-cdk/aws-certificatemanager';
-import { EnvConfig, getDomainName } from './env';
+import { EnvConfig } from './env';
 
 export interface JournalingUiProps {
-  gqlUrl: string;
   envConfig: EnvConfig;
   hostedZone: route53.IHostedZone;
   acmCert: acm.ICertificate;
 }
 
 export class JournalingUi extends cdk.Construct {
-  appUrl: string;
-
   constructor(scope: cdk.Construct, id: string, props: JournalingUiProps) {
     super(scope, id);
-
-    const appDomain = getDomainName(props.envConfig);
 
     const appBucket = new s3.Bucket(this, 'appBucket', {
       websiteIndexDocument: 'index.html',
@@ -46,7 +41,7 @@ export class JournalingUi extends cdk.Construct {
         viewerCertificate: cloudfront.ViewerCertificate.fromAcmCertificate(
           props.acmCert,
           {
-            aliases: [appDomain],
+            aliases: [props.envConfig.appDomain],
             securityPolicy: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2018,
             sslMethod: cloudfront.SSLMethod.SNI,
           }
@@ -56,7 +51,7 @@ export class JournalingUi extends cdk.Construct {
 
     new route53.ARecord(this, 'appRecord', {
       zone: props.hostedZone,
-      recordName: appDomain,
+      recordName: props.envConfig.appDomain,
       target: route53.RecordTarget.fromAlias(
         new route53Targets.CloudFrontTarget(cloudfrontDistribution)
       ),
@@ -64,10 +59,10 @@ export class JournalingUi extends cdk.Construct {
 
     if (process.env.BUILD_UI) {
       const envVars: { [key: string]: string } = {
-        REACT_APP_AUTH0_DOMAIN: props.envConfig.AUTH0_DOMAIN,
-        REACT_APP_AUTH0_CLIENT_ID: props.envConfig.AUTH0_CLIENT_ID,
-        REACT_APP_AUTH0_API_ID: props.envConfig.AUTH0_API_IDENTIFIER,
-        REACT_APP_GQL_URL: props.gqlUrl,
+        REACT_APP_AUTH0_DOMAIN: props.envConfig.auth0Domain,
+        REACT_APP_AUTH0_CLIENT_ID: props.envConfig.auth0ClientId,
+        REACT_APP_AUTH0_API_ID: props.envConfig.auth0ApiId,
+        REACT_APP_GQL_URL: props.envConfig.gqlUrl,
       };
 
       const sourcePath = path.join(__dirname, '../../journaling-client');
@@ -106,7 +101,5 @@ export class JournalingUi extends cdk.Construct {
         retainOnDelete: true,
       });
     }
-
-    this.appUrl = `https://${appDomain}`;
   }
 }

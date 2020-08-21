@@ -1,32 +1,27 @@
-import { parse } from 'dotenv';
-import { readFileSync } from 'fs';
+import * as yup from 'yup';
 
-type EnvironmentName = 'staging' | 'production';
+const schema = yup
+  .object()
+  .required()
+  .shape({
+    envName: yup.string().required(),
+    route53HostedZoneDomain: yup.string().required(),
+    route53HostedZoneId: yup.string().required(),
+    httpsCertArn: yup.string().required(),
+    appDomain: yup.string().required(),
+    auth0Domain: yup.string().required(),
+    auth0ClientId: yup.string().required(),
+    auth0ApiId: yup.string().required(),
+    apiDomain: yup.string().required(),
+    gqlUrl: yup.string().required(),
+    appUrl: yup.string().required(),
+    ephemeralData: yup.bool().required(),
 
-export interface EnvConfig {
-  AUTH0_API_IDENTIFIER: string;
-  AUTH0_DOMAIN: string;
-  AUTH0_CLIENT_ID: string;
-  R53_HOSTED_ZONE_ID: string;
-  DOMAIN: string;
-  HOST_PREFIX?: string;
-  ARN_HTTPS_CERT: string;
-  DYNAMO_PREFIX?: string;
-}
+    dynamoTableNames: yup.object().required().shape({
+      JournalEntries: yup.string().required(),
+    }),
+  });
 
-export const defaultEnv = parse(readFileSync('.env', 'utf-8')) as Partial<
-  EnvConfig
->;
+export type EnvConfig = yup.InferType<typeof schema>;
 
-export const getEnvConfig = (envName: EnvironmentName) =>
-  ({
-    ...defaultEnv,
-    ...parse(readFileSync(`.env.${envName}`)),
-  } as EnvConfig);
-
-export const getDomainName = (envConfig: EnvConfig, ...names: string[]) =>
-  ['journal', ...names, envConfig.HOST_PREFIX ?? null]
-    .filter((x) => x)
-    .join('-') +
-  '.' +
-  envConfig.DOMAIN;
+export const loadEnvConfig = () => schema.cast(require('../../env/env.json'))!;

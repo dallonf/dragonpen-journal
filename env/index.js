@@ -3,8 +3,9 @@ const fs = require('fs');
 const path = require('path');
 const yup = require('yup');
 
-const envSchema = yup.object().shape({
+const envSchema = yup.object().required().shape({
   ENV_NAME: yup.string().required(),
+  EPHEMERAL_DATA: yup.string(),
 
   DEBUG: yup.string(),
 
@@ -18,7 +19,7 @@ const sourceEnv = envSchema.cast(process.env);
 console.log('Collecting environment information');
 
 const DOMAIN_NAME = 'dallonf.com';
-const { ENV_NAME, DEBUG } = process.env;
+const { ENV_NAME, DEBUG, EPHEMERAL_DATA } = sourceEnv;
 const hostPrefix = ENV_NAME == 'production' ? null : ENV_NAME;
 
 const getDomainName = (...names) =>
@@ -36,6 +37,7 @@ const dynamoTableNames = Object.fromEntries(
 );
 
 const output = {
+  envName: ENV_NAME,
   auth0Domain: 'dallonf.auth0.com',
   auth0ClientId: 'njBUh8oOFZe099w5nkxY0IqFY8aHO1O1',
   auth0ApiId: 'https://api.journal.dallonf.com',
@@ -48,6 +50,7 @@ const output = {
   appUrl: `https://${appDomain}`,
   apiDomain,
   gqlUrl: `https://${apiDomain}/graphql`,
+  ephemeralData: Boolean(EPHEMERAL_DATA),
 
   dynamoTableNames,
 };
