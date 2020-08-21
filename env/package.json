@@ -1,0 +1,10 @@
+{
+  "name": "dragonpen-env",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "yup": "^0.29.3"
+  }
+}
