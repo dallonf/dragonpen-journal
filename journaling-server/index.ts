@@ -5,6 +5,7 @@ import axios from 'axios';
 import cors from 'cors';
 import { makeExpressHandler } from './src/utils/lambdaToExpress';
 import { handler as gqlHandler } from './src/handlers/gql';
+import * as env from './src/env.json';
 
 const express = require('express') as () => expressTypes.Express;
 
@@ -27,11 +28,11 @@ if (process.env.NODE_ENV === 'development') {
 
       if (code) {
         const response = await axios.post(
-          `https://${process.env.AUTH0_DOMAIN}/oauth/token`,
+          `https://${env.auth0Domain}/oauth/token`,
           qs.encode({
             grant_type: 'authorization_code',
-            client_id: process.env.AUTH0_TEST_CLIENT_ID,
-            client_secret: process.env.AUTH0_TEST_CLIENT_SECRET,
+            client_id: env.auth0TestClientId,
+            client_secret: env.auth0TestClientSecret,
             redirect_uri: `${baseUrl}/jwt`,
             scope: 'openid profile email',
             code,
@@ -40,10 +41,10 @@ if (process.env.NODE_ENV === 'development') {
         );
         res.send(`Bearer ${response.data.access_token}`);
       } else {
-        const url = `https://${process.env.AUTH0_DOMAIN}/authorize?${qs.encode({
-          audience: process.env.AUTH0_IDENTIFIER,
+        const url = `https://${env.auth0Domain}/authorize?${qs.encode({
+          audience: env.auth0ApiId,
           response_type: 'code',
-          client_id: process.env.AUTH0_TEST_CLIENT_ID,
+          client_id: env.auth0TestClientId,
           redirect_uri: `${baseUrl}/jwt`,
           scope: 'openid profile email',
         })}`;

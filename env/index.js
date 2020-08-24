@@ -30,6 +30,9 @@ const {
   EPHEMERAL_DATA,
   LOCALHOST_API,
   LOCALHOST_APP,
+  AUTH0_TEST_CLIENT_ID,
+  AUTH0_TEST_CLIENT_SECRET,
+  REPL_USER_ID,
 } = sourceEnv;
 const hostPrefix = ENV_NAME == 'production' ? null : ENV_NAME;
 
@@ -56,6 +59,11 @@ const output = {
   auth0Domain: 'dallonf.auth0.com',
   auth0ClientId: 'njBUh8oOFZe099w5nkxY0IqFY8aHO1O1',
   auth0ApiId: 'https://api.journal.dallonf.com',
+
+  auth0TestClientId: AUTH0_TEST_CLIENT_ID,
+  auth0TestClientSecret: AUTH0_TEST_CLIENT_SECRET,
+  replUserId: REPL_USER_ID,
+
   route53HostedZoneDomain: DOMAIN_NAME,
   route53HostedZoneId: 'Z2T9RQTFXUZ2GU',
   httpsCertArn:
@@ -74,7 +82,7 @@ if (DEBUG) {
   console.log(JSON.stringify(output, null, 2));
 } else {
   const outputJson = JSON.stringify(output);
-  ['cdk/lib'].forEach((outputPath) => {
+  ['cdk/lib', 'journaling-server/src'].forEach((outputPath) => {
     fs.writeFileSync(
       path.join(__dirname, '..', outputPath, 'env.json'),
       outputJson

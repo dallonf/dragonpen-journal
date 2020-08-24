@@ -1,9 +1,10 @@
 import { verify, GetPublicKeyOrSecret } from 'jsonwebtoken';
 import jwksRsa from 'jwks-rsa';
+import * as env from '../env.json';
 import { User } from '../model/user';
 
 const client = jwksRsa({
-  jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`,
+  jwksUri: `https://${env.auth0Domain}/.well-known/jwks.json`,
 });
 
 const getKey: GetPublicKeyOrSecret = (header, callback) => {
@@ -31,8 +32,8 @@ export const validateTokenAndGetUser = (token: string): Promise<User> => {
         bearerToken[1],
         getKey,
         {
-          audience: process.env.AUTH0_IDENTIFIER,
-          issuer: `https://${process.env.AUTH0_DOMAIN}/`,
+          audience: env.auth0ApiId,
+          issuer: `https://${env.auth0Domain}/`,
           algorithms: ['RS256'],
         },
         (error, decoded) => {
