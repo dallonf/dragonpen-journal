@@ -11,6 +11,7 @@ import DateFnsUtils from '@date-io/date-fns';
 import { Auth0Provider, useAuth0 } from '@auth0/auth0-react';
 import theme from './theme';
 import { createClient } from '../data/apollo-client';
+import * as env from '../env.json';
 
 const RequireLogin: React.FC = ({ children }) => {
   const { loginWithRedirect, isAuthenticated, isLoading } = useAuth0();
@@ -38,7 +39,7 @@ const AuthenticatedApolloProvider: React.FC = ({ children }) => {
   const client = createClient({
     getAccessToken: () =>
       getAccessTokenSilently({
-        audience: process.env.REACT_APP_AUTH0_API_ID,
+        audience: env.auth0ApiId,
       }),
   });
 
@@ -50,10 +51,10 @@ const App: React.FC = ({ children }) => (
     <EmotionThemeProvider theme={theme}>
       <MuiPickersUtilsProvider utils={DateFnsUtils}>
         <Auth0Provider
-          domain={process.env.REACT_APP_AUTH0_DOMAIN}
-          clientId={process.env.REACT_APP_AUTH0_CLIENT_ID}
+          domain={env.auth0Domain}
+          clientId={env.auth0ClientId}
           redirectUri={window.location.origin}
-          audience={process.env.REACT_APP_AUTH0_API_ID}
+          audience={env.auth0ApiId}
         >
           <RequireLogin>
             <AuthenticatedApolloProvider>

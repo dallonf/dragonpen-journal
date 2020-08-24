@@ -1,5 +1,6 @@
 import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
+import * as env from '../env.json';
 
 export const createClient = ({
   getAccessToken,
@@ -15,7 +16,7 @@ export const createClient = ({
   });
 
   const httpLink = new HttpLink({
-    uri: process.env.REACT_APP_GQL_URL,
+    uri: env.gqlUrl,
   });
 
   const client = new ApolloClient({
@@ -24,7 +25,7 @@ export const createClient = ({
       typePolicies: {
         Query: {
           fields: {
-            // Blocked by 
+            // Blocked by
             // https://github.com/apollographql/apollo-client/issues/6844
             // journalEntryById: {
             //   read: (q, { args, toReference }) =>

@@ -2,6 +2,7 @@ require('dotenv/config');
 const fs = require('fs');
 const path = require('path');
 const yup = require('yup');
+const lodash = require('lodash');
 
 const envSchema = yup.object().required().shape({
   ENV_NAME: yup.string().required(),
@@ -72,5 +73,26 @@ const output = {
 if (DEBUG) {
   console.log(JSON.stringify(output, null, 2));
 } else {
-  fs.writeFileSync(path.join(__dirname, 'env.json'), JSON.stringify(output));
+  const outputJson = JSON.stringify(output);
+  ['cdk/lib'].forEach((outputPath) => {
+    fs.writeFileSync(
+      path.join(__dirname, '..', outputPath, 'env.json'),
+      outputJson
+    );
+  });
+
+  // Only send a handful of config options to the client,
+  // so that secrets don't get compiled into the front-end source
+  const clientOutputJson = JSON.stringify(
+    lodash.pick(output, [
+      'auth0Domain',
+      'auth0ClientId',
+      'auth0ApiId',
+      'gqlUrl',
+    ])
+  );
+  fs.writeFileSync(
+    path.join(__dirname, '../journaling-client/src/env.json'),
+    clientOutputJson
+  );
 }
