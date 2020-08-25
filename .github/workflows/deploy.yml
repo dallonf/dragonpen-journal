@@ -19,15 +19,32 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
+
+      - name: Run env script
+        run: npm ci && npm run start
+        working-directory: ./env
+        env:
+          ENV_NAME: staging
+          EPHEMERAL_DATA: '1'
+
       - name: Install deps for CDK
         run: npm ci
         working-directory: ./cdk
+
       - name: Install deps for server
         run: npm ci
         working-directory: ./journaling-server
-      - name: Build Stacks
+
+      - name: Install deps for client
+        run: npm ci
+        working-directory: ./journaling-client
+      - name: Build client
         run: npm run build
+        working-directory: ./journaling-client
+
+      - name: Deploy infrastructure
+        run: npm run deploy -- --require-approval=never
         working-directory: ./cdk
-      - name: Deploy
-        run: BUILD_UI=1 npx cdk deploy JournalingStackStaging --require-approval=never
-        working-directory: ./cdk
+      - name: Deploy client
+        run: npm run build
+        working-directory: ./journaling-client
