@@ -51,5 +51,8 @@ export class JournalingStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'uiBucket', {
       value: ui.bucket.s3UrlForObject(),
     });
+    new cdk.CfnOutput(this, 'uiDistribution', {
+      value: ui.distribution.distributionId,
+    });
   }
 }

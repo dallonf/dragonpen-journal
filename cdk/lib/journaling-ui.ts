@@ -17,6 +17,7 @@ export interface JournalingUiProps {
 
 export class JournalingUi extends cdk.Construct {
   bucket: s3.Bucket;
+  distribution: cloudfront.IDistribution;
 
   constructor(scope: cdk.Construct, id: string, props: JournalingUiProps) {
     super(scope, id);
@@ -104,5 +105,6 @@ export class JournalingUi extends cdk.Construct {
     // }
 
     this.bucket = appBucket;
+    this.distribution = cloudfrontDistribution;
   }
 }
