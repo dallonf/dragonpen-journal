@@ -41,7 +41,7 @@ const getDomainName = (...names) =>
   '.' +
   DOMAIN_NAME;
 
-const getDynamoTableName = (name) => `${name}-${ENV_NAME}`;
+const getDynamoTableName = (name) => `Dragonpen-${name}-${ENV_NAME}`;
 
 const apiDomain = LOCALHOST_API
   ? `localhost:${LOCALHOST_API}`

@@ -10,9 +10,9 @@
     "test": "jest",
     "cdk": "cdk",
     "synth": "npm run build && cdk synth",
-    "diff": "npm run build && cdk diff",
-    "deploy": "npm run build && cdk deploy",
-    "destroy": "npm run build && cdk destroy",
+    "diff": "npm run build && cdk diff JournalingDBStack-* JournalingStack-*",
+    "deploy": "npm run build && cdk deploy JournalingDBStack-* JournalingStack-*",
+    "destroy": "npm run build && cdk destroy JournalingDBStack-* JournalingStack-*",
     "diff:db": "npm run build && cdk diff JournalingDBStack-*",
     "deploy:db": "npm run build && cdk deploy JournalingDBStack-*",
     "destroy:db": "npm run build && cdk destroy JournalingDBStack-*"
