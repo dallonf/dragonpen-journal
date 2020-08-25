@@ -36,7 +36,7 @@ jobs:
 
       - name: Get diff
         working-directory: ./cdk
-        run: npm run diff > diff.txt
+        run: npm run diff -- --no-color 2> diff.txt
 
       - name: Make comment
         run: |
