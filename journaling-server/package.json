@@ -5,7 +5,7 @@
   "repository": {},
   "main": "index.js",
   "scripts": {
-    "start:dev": "ts-node-dev --respawn --transpile-only -r dotenv/config index.ts",
+    "start:dev": "ts-node-dev --respawn --transpile-only index.ts",
     "typecheck": "tsc --incremental",
     "generate:types:gql": "graphql-codegen --config codegen.yml",
     "generate:types:gql:watch": "npm run generate:types:gql -- --watch \"src/schema.ts\"",
@@ -34,7 +34,6 @@
     "aws-sdk": "^2.728.0",
     "axios": "^0.19.2",
     "cors": "^2.8.5",
-    "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "graphql": "^15.3.0",
     "jsonwebtoken": "^8.5.1",
