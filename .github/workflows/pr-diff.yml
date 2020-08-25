@@ -35,7 +35,7 @@ jobs:
       #   run: npm run diff | tee diff.txt
 
       - name: Make comment
-        run: "echo \"@${{ github.event.sender.login }}, here's the CDK diff: > message.txt\""
+        run: "echo \"@${{ github.event.sender.login }}, here's the CDK diff:\" > message.txt"
 
       - name: Comment
         uses: machine-learning-apps/pr-comment@master
