@@ -47,5 +47,9 @@ export class JournalingStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'appUrl', {
       value: props.envConfig.appUrl,
     });
+
+    new cdk.CfnOutput(this, 'uiBucket', {
+      value: ui.bucket.s3UrlForObject(),
+    });
   }
 }

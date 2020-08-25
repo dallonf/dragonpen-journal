@@ -4,6 +4,7 @@
 node_modules
 tsconfig.tsbuildinfo
 env.json
+deploy-output.json
 
 # CDK asset staging directory
 .cdk.staging
