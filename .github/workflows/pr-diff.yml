@@ -1,0 +1,46 @@
+name: PR Diff
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  check-diff:
+    runs-on: ubuntu-latest
+    steps:
+      # - uses: actions/checkout@v2
+      # - name: Use Node.js
+      #   uses: actions/setup-node@v1
+      #   with:
+      #     node-version: '14.x'
+      # - name: Use AWS CLI
+      #   uses: aws-actions/configure-aws-credentials@v1
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: us-east-1
+
+      # - name: Run env script
+      #   run: npm ci && npm run start
+      #   working-directory: ./env
+      #   env:
+      #     ENV_NAME: production
+
+      # - name: Install deps for CDK
+      #   run: npm ci
+      #   working-directory: ./cdk
+
+      # - name: Get diff
+      #   working-directory: ./cdk
+      #   run: npm run diff | tee diff.txt
+
+      - name: Comment
+        uses: actions/github-script@v3
+        with: 
+          script: |
+              github.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `@${context.pusher.name} Here's the CDK diff:`
+              })
