@@ -34,13 +34,12 @@ jobs:
       #   working-directory: ./cdk
       #   run: npm run diff | tee diff.txt
 
+      - name: Make comment
+        run: "echo \"@${{ github.event.sender.login }}, here's the CDK diff: > message.txt\""
+
       - name: Comment
-        uses: actions/github-script@v3
-        with: 
-          script: |
-              github.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: `@${context.actor} Here's the CDK diff:`
-              })
+        uses: machine-learning-apps/pr-comment@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          path: message.txt
