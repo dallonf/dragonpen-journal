@@ -34,12 +34,15 @@ jobs:
       - name: Install deps for server
         run: npm ci
         working-directory: ./journaling-server
+      - name: Generate schema files
+        run: npm run generate:types:gql
+        working-directory: ./journaling-server
 
       - name: Install deps for client
         run: npm ci
         working-directory: ./journaling-client
       - name: Build client
-        run: npm run build
+        run: npm run typegen:gql && npm run build
         working-directory: ./journaling-client
 
       - name: Deploy infrastructure
