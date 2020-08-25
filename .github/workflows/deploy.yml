@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ master ]
 
 jobs:
   deploy:
@@ -24,8 +24,7 @@ jobs:
         run: npm ci && npm run start
         working-directory: ./env
         env:
-          ENV_NAME: staging
-          EPHEMERAL_DATA: '1'
+          ENV_NAME: production
 
       - name: Install deps for CDK
         run: npm ci
