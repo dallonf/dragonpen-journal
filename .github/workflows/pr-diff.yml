@@ -26,6 +26,10 @@ jobs:
         env:
           ENV_NAME: production
 
+      - name: Setup server code
+        run: npm ci && npm run generate:types:gql
+        working-directory: ./journaling-server
+
       - name: Install deps for CDK
         run: npm ci
         working-directory: ./cdk
@@ -36,10 +40,10 @@ jobs:
 
       - name: Make comment
         run: |
-          echo \"@${{ github.event.sender.login }}, here's the CDK diff:\" > message.txt
-          echo "\`\`\`" > message.txt
-          cat cdk/diff.txt > message.txt
-          echo "\`\`\`" > message.txt
+          echo "@${{ github.event.sender.login }}, here's the CDK diff:" > message.txt
+          echo "\\`\\`\\`" >> message.txt
+          cat cdk/diff.txt >> message.txt
+          echo "\\`\\`\\`" >> message.txt
 
       - name: Comment
         uses: machine-learning-apps/pr-comment@master
