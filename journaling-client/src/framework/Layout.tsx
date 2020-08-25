@@ -71,10 +71,6 @@ const Layout: React.FC<LayoutProps> = ({
   const [anchorEl, setAnchorEl] = React.useState<Element | null>(null);
   const open = Boolean(anchorEl);
 
-  if (!user) {
-    throw new Error('Should have been logged in to get this far');
-  }
-
   const handleMenu: React.MouseEventHandler = (e) => {
     setAnchorEl(e.currentTarget);
   };
@@ -104,29 +100,31 @@ const Layout: React.FC<LayoutProps> = ({
               flex-grow: 1;
             `}
           />
-          <Box>
-            <IconButton
-              aria-label="account of current user"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
-              onClick={handleMenu}
-              color="inherit"
-            >
-              <AccountCircleIcon />
-            </IconButton>
-            <Menu
-              id="menu-appbar"
-              anchorEl={anchorEl}
-              anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-              keepMounted={true}
-              open={open}
-              onClose={handleCloseMenu}
-            >
-              <MenuItem>{user.name}</MenuItem>
-              <MenuItem onClick={() => logout()}>Log out</MenuItem>
-            </Menu>
-          </Box>
+          {user && (
+            <Box>
+              <IconButton
+                aria-label="account of current user"
+                aria-controls="menu-appbar"
+                aria-haspopup="true"
+                onClick={handleMenu}
+                color="inherit"
+              >
+                <AccountCircleIcon />
+              </IconButton>
+              <Menu
+                id="menu-appbar"
+                anchorEl={anchorEl}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                keepMounted={true}
+                open={open}
+                onClose={handleCloseMenu}
+              >
+                <MenuItem>{user.name}</MenuItem>
+                <MenuItem onClick={() => logout()}>Log out</MenuItem>
+              </Menu>
+            </Box>
+          )}
         </Toolbar>
       </AppBar>
       <AppBoxCell>{children}</AppBoxCell>

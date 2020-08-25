@@ -12,6 +12,7 @@ import { Auth0Provider, useAuth0 } from '@auth0/auth0-react';
 import theme from './theme';
 import { createClient } from '../data/apollo-client';
 import * as env from '../env.json';
+import LoadingPlaceholder from './LoadingPlaceholderPage';
 
 const RequireLogin: React.FC = ({ children }) => {
   const { loginWithRedirect, isAuthenticated, isLoading } = useAuth0();
@@ -25,7 +26,7 @@ const RequireLogin: React.FC = ({ children }) => {
   });
 
   if (isLoading || unauthenticated) {
-    return null;
+    return <LoadingPlaceholder />;
   } else {
     return <>{children}</>;
   }
