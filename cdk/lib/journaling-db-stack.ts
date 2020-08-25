@@ -2,7 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import * as dynamodb from '@aws-cdk/aws-dynamodb';
 import { EnvConfig } from './env';
 
-export interface JournalingDynamoDBProps {
+export interface JournalingDBStackProps extends cdk.StackProps {
   envConfig: EnvConfig;
 }
 
@@ -10,15 +10,11 @@ export interface TableCollection {
   JournalEntries: dynamodb.Table;
 }
 
-export class JournalingDynamoDB extends cdk.Construct {
+export class JournalingDBStack extends cdk.Stack {
   tables: TableCollection;
 
-  constructor(
-    scope: cdk.Construct,
-    id: string,
-    props: JournalingDynamoDBProps
-  ) {
-    super(scope, id);
+  constructor(scope: cdk.Construct, id: string, props: JournalingDBStackProps) {
+    super(scope, id, props);
 
     const journalEntriesTable = new dynamodb.Table(this, 'JournalEntries', {
       tableName: props.envConfig.dynamoTableNames.JournalEntries,
@@ -36,5 +32,9 @@ export class JournalingDynamoDB extends cdk.Construct {
     this.tables = {
       JournalEntries: journalEntriesTable,
     };
+
+    new cdk.CfnOutput(this, 'tableNames', {
+      value: JSON.stringify(props.envConfig.dynamoTableNames),
+    });
   }
 }

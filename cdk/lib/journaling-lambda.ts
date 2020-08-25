@@ -5,11 +5,11 @@ import * as apiGateway from '@aws-cdk/aws-apigatewayv2';
 import * as route53 from '@aws-cdk/aws-route53';
 import * as acm from '@aws-cdk/aws-certificatemanager';
 import { EnvConfig } from './env';
-import { JournalingDynamoDB } from './journaling-dynamodb';
+import { JournalingDBStack } from './journaling-db-stack';
 
 interface JournalingLambdaProps {
   envConfig: EnvConfig;
-  dynamo: JournalingDynamoDB;
+  dbStack: JournalingDBStack;
   hostedZone: route53.IHostedZone;
   acmCert: acm.ICertificate;
 }
@@ -47,7 +47,7 @@ export class JournalingLambda extends cdk.Construct {
       environment,
     });
 
-    props.dynamo.tables.JournalEntries.grantReadWriteData(graphql);
+    props.dbStack.tables.JournalEntries.grantReadWriteData(graphql);
 
     const domain = new apiGateway.DomainName(this, 'domain', {
       domainName: apiDomain,

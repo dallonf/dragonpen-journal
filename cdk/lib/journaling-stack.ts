@@ -4,11 +4,12 @@ import * as acm from '@aws-cdk/aws-certificatemanager';
 import { EnvConfig } from './env';
 import { JournalingUi } from './journaling-ui';
 import { JournalingLambda } from './journaling-lambda';
-import { JournalingDynamoDB } from './journaling-dynamodb';
+import { JournalingDBStack } from './journaling-db-stack';
 
 interface JournalingStackProps extends cdk.StackProps {
   envConfig: EnvConfig;
   enableExpensiveStuff?: boolean;
+  dbStack: JournalingDBStack;
 }
 
 export class JournalingStack extends cdk.Stack {
@@ -26,13 +27,9 @@ export class JournalingStack extends cdk.Stack {
       props.envConfig.httpsCertArn
     );
 
-    const dynamo = new JournalingDynamoDB(this, 'dynamoTables', {
-      envConfig: props.envConfig,
-    });
-
     const lambdaServer = new JournalingLambda(this, 'lambdaServer', {
       envConfig: props.envConfig,
-      dynamo,
+      dbStack: props.dbStack,
       hostedZone: zone,
       acmCert,
     });
