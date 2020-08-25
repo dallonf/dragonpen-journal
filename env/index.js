@@ -93,6 +93,7 @@ if (DEBUG) {
   // so that secrets don't get compiled into the front-end source
   const clientOutputJson = JSON.stringify(
     lodash.pick(output, [
+      'envName',
       'auth0Domain',
       'auth0ClientId',
       'auth0ApiId',

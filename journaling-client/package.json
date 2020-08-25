@@ -81,6 +81,7 @@
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
     "test": "node scripts/test.js",
+    "deploy": "node scripts/deploy.js",
     "typecheck": "tsc --incremental --noEmit false --outDir tmp/.ts",
     "typegen:gql": "apollo client:codegen --target typescript --addTypename --outputFlat src/generated/gql-types.ts"
   },
