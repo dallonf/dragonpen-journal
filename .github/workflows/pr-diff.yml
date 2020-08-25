@@ -8,34 +8,38 @@ jobs:
   check-diff:
     runs-on: ubuntu-latest
     steps:
-      # - uses: actions/checkout@v2
-      # - name: Use Node.js
-      #   uses: actions/setup-node@v1
-      #   with:
-      #     node-version: '14.x'
-      # - name: Use AWS CLI
-      #   uses: aws-actions/configure-aws-credentials@v1
-      #   with:
-      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     aws-region: us-east-1
+      - uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '14.x'
+      - name: Use AWS CLI
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
 
-      # - name: Run env script
-      #   run: npm ci && npm run start
-      #   working-directory: ./env
-      #   env:
-      #     ENV_NAME: production
+      - name: Run env script
+        run: npm ci && npm run start
+        working-directory: ./env
+        env:
+          ENV_NAME: production
 
-      # - name: Install deps for CDK
-      #   run: npm ci
-      #   working-directory: ./cdk
+      - name: Install deps for CDK
+        run: npm ci
+        working-directory: ./cdk
 
-      # - name: Get diff
-      #   working-directory: ./cdk
-      #   run: npm run diff | tee diff.txt
+      - name: Get diff
+        working-directory: ./cdk
+        run: npm run diff | tee diff.txt
 
       - name: Make comment
-        run: "echo \"@${{ github.event.sender.login }}, here's the CDK diff:\" > message.txt"
+        run: |
+          "echo \"@${{ github.event.sender.login }}, here's the CDK diff:\" > message.txt"
+          "echo "```" > message.txt"
+          "cat cdk/diff.txt > message.txt"
+          "echo "```" > message.txt"
 
       - name: Comment
         uses: machine-learning-apps/pr-comment@master
