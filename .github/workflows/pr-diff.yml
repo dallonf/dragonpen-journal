@@ -36,14 +36,14 @@ jobs:
 
       - name: Get diff
         working-directory: ./cdk
-        run: npm run diff | tee diff.txt
+        run: npm run diff > diff.txt
 
       - name: Make comment
         run: |
           echo "@${{ github.event.sender.login }}, here's the CDK diff:" > message.txt
-          echo "\\`\\`\\`" >> message.txt
+          echo "\`\`\`" >> message.txt
           cat cdk/diff.txt >> message.txt
-          echo "\\`\\`\\`" >> message.txt
+          echo "\`\`\`" >> message.txt
 
       - name: Comment
         uses: machine-learning-apps/pr-comment@master
