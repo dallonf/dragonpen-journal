@@ -1,5 +1,4 @@
 import * as path from 'path';
-import * as childProcess from 'child_process';
 import * as cdk from '@aws-cdk/core';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as crypto from 'crypto';
@@ -8,22 +7,20 @@ import * as cloudfront from '@aws-cdk/aws-cloudfront';
 import * as route53 from '@aws-cdk/aws-route53';
 import * as route53Targets from '@aws-cdk/aws-route53-targets';
 import * as acm from '@aws-cdk/aws-certificatemanager';
-import { EnvConfig, getDomainName } from './env';
+import { EnvConfig } from './env';
 
 export interface JournalingUiProps {
-  gqlUrl: string;
   envConfig: EnvConfig;
   hostedZone: route53.IHostedZone;
   acmCert: acm.ICertificate;
 }
 
 export class JournalingUi extends cdk.Construct {
-  appUrl: string;
+  bucket: s3.Bucket;
+  distribution: cloudfront.IDistribution;
 
   constructor(scope: cdk.Construct, id: string, props: JournalingUiProps) {
     super(scope, id);
-
-    const appDomain = getDomainName(props.envConfig);
 
     const appBucket = new s3.Bucket(this, 'appBucket', {
       websiteIndexDocument: 'index.html',
@@ -46,7 +43,7 @@ export class JournalingUi extends cdk.Construct {
         viewerCertificate: cloudfront.ViewerCertificate.fromAcmCertificate(
           props.acmCert,
           {
-            aliases: [appDomain],
+            aliases: [props.envConfig.appDomain],
             securityPolicy: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2018,
             sslMethod: cloudfront.SSLMethod.SNI,
           }
@@ -56,57 +53,58 @@ export class JournalingUi extends cdk.Construct {
 
     new route53.ARecord(this, 'appRecord', {
       zone: props.hostedZone,
-      recordName: appDomain,
+      recordName: props.envConfig.appDomain,
       target: route53.RecordTarget.fromAlias(
         new route53Targets.CloudFrontTarget(cloudfrontDistribution)
       ),
     });
 
-    if (process.env.BUILD_UI) {
-      const envVars: { [key: string]: string } = {
-        REACT_APP_AUTH0_DOMAIN: props.envConfig.AUTH0_DOMAIN,
-        REACT_APP_AUTH0_CLIENT_ID: props.envConfig.AUTH0_CLIENT_ID,
-        REACT_APP_AUTH0_API_ID: props.envConfig.AUTH0_API_IDENTIFIER,
-        REACT_APP_GQL_URL: props.gqlUrl,
-      };
+    // if (process.env.BUILD_UI) {
+    //   const envVars: { [key: string]: string } = {
+    //     REACT_APP_AUTH0_DOMAIN: props.envConfig.auth0Domain,
+    //     REACT_APP_AUTH0_CLIENT_ID: props.envConfig.auth0ClientId,
+    //     REACT_APP_AUTH0_API_ID: props.envConfig.auth0ApiId,
+    //     REACT_APP_GQL_URL: props.envConfig.gqlUrl,
+    //   };
 
-      const sourcePath = path.join(__dirname, '../../journaling-client');
-      const exclude = ['node_modules', 'build'];
+    //   const sourcePath = path.join(__dirname, '../../journaling-client');
+    //   const exclude = ['node_modules', 'build'];
 
-      const uiSource = s3Deployment.Source.asset(sourcePath, {
-        exclude,
-        bundling: {
-          image: cdk.BundlingDockerImage.fromRegistry('node:14'),
-          command: [
-            'bash',
-            '-c',
-            'npm install && npm run build && cp -R build/* /asset-output',
-          ],
-          environment: envVars,
-        },
+    //   const uiSource = s3Deployment.Source.asset(sourcePath, {
+    //     exclude,
+    //     bundling: {
+    //       image: cdk.BundlingDockerImage.fromRegistry('node:14'),
+    //       command: [
+    //         'bash',
+    //         '-c',
+    //         'npm ci && npm run build && cp -R build/* /asset-output',
+    //       ],
+    //       environment: envVars,
+    //     },
 
-        sourceHash: cdk.FileSystem.fingerprint(sourcePath, {
-          exclude,
-          extraHash: crypto
-            .createHash('md5')
-            .update(
-              JSON.stringify({
-                envVars,
-                hashBreak: 1,
-              })
-            )
-            .digest('hex'),
-        }),
-      });
+    //     sourceHash: cdk.FileSystem.fingerprint(sourcePath, {
+    //       exclude,
+    //       extraHash: crypto
+    //         .createHash('md5')
+    //         .update(
+    //           JSON.stringify({
+    //             envVars,
+    //             hashBreak: 1,
+    //           })
+    //         )
+    //         .digest('hex'),
+    //     }),
+    //   });
 
-      new s3Deployment.BucketDeployment(this, 'appDeployment', {
-        sources: [uiSource],
-        destinationBucket: appBucket,
-        distribution: cloudfrontDistribution,
-        retainOnDelete: true,
-      });
-    }
+    //   // new s3Deployment.BucketDeployment(this, 'appDeployment', {
+    //   //   sources: [uiSource],
+    //   //   destinationBucket: appBucket,
+    //   //   distribution: cloudfrontDistribution,
+    //   //   retainOnDelete: true,
+    //   // });
+    // }
 
-    this.appUrl = `https://${appDomain}`;
+    this.bucket = appBucket;
+    this.distribution = cloudfrontDistribution;
   }
 }

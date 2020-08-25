@@ -2,15 +2,20 @@
 import 'source-map-support/register';
 import * as cdk from '@aws-cdk/core';
 import { JournalingStack } from '../lib/journaling-stack';
-import { getEnvConfig } from '../lib/env';
+import { JournalingDBStack } from '../lib/journaling-db-stack';
+import { loadEnvConfig } from '../lib/env';
+
+const envConfig = loadEnvConfig();
 
 const app = new cdk.App();
-new JournalingStack(app, 'JournalingStackStaging', {
-  envConfig: getEnvConfig('staging'),
-  enableExpensiveStuff: true,
+const dbStack = new JournalingDBStack(
+  app,
+  `JournalingDBStack-${envConfig.envName}`,
+  {
+    envConfig,
+  }
+);
+new JournalingStack(app, `JournalingStack-${envConfig.envName}`, {
+  envConfig,
+  dbStack,
 });
-new JournalingStack(app, 'JournalingStackProduction', {
-  envConfig: getEnvConfig('production'),
-  enableExpensiveStuff: true,
-});
-

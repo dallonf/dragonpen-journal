@@ -4,13 +4,12 @@ import * as lambdaNode from '@aws-cdk/aws-lambda-nodejs';
 import * as apiGateway from '@aws-cdk/aws-apigatewayv2';
 import * as route53 from '@aws-cdk/aws-route53';
 import * as acm from '@aws-cdk/aws-certificatemanager';
-import * as dynamodb from '@aws-cdk/aws-dynamodb';
-import { EnvConfig, getDomainName } from './env';
-import { JournalingDynamoDB } from './journaling-dynamodb';
+import { EnvConfig } from './env';
+import { JournalingDBStack } from './journaling-db-stack';
 
 interface JournalingLambdaProps {
   envConfig: EnvConfig;
-  dynamo: JournalingDynamoDB;
+  dbStack: JournalingDBStack;
   hostedZone: route53.IHostedZone;
   acmCert: acm.ICertificate;
 }
@@ -32,23 +31,15 @@ export class JournalingLambda extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: JournalingLambdaProps) {
     super(scope, id);
 
-    const apiDomain = getDomainName(props.envConfig, 'api');
+    const apiDomain = props.envConfig.apiDomain;
 
     const serverDir = path.join(__dirname, '../../journaling-server');
     const handlersDir = path.join(serverDir, 'src/handlers');
 
-    const tableNames = Object.fromEntries(
-      Object.entries(props.dynamo.tables).map(([k, v]) => {
-        const table = v as dynamodb.Table;
-        return [k, table.tableName];
-      })
-    );
-
     const environment = {
-      AUTH0_IDENTIFIER: props.envConfig.AUTH0_API_IDENTIFIER,
-      AUTH0_DOMAIN: props.envConfig.AUTH0_DOMAIN,
-      ELASTIC_NODE: 'http://nope',
-      DYNAMO_TABLE_NAMES: JSON.stringify(tableNames),
+      AUTH0_IDENTIFIER: props.envConfig.auth0ApiId,
+      AUTH0_DOMAIN: props.envConfig.auth0Domain,
+      DYNAMO_TABLE_NAMES: JSON.stringify(props.envConfig.dynamoTableNames),
     };
 
     const graphql = new lambdaNode.NodejsFunction(this, 'gqlFn', {
@@ -56,7 +47,7 @@ export class JournalingLambda extends cdk.Construct {
       environment,
     });
 
-    props.dynamo.tables.JournalEntries.grantReadWriteData(graphql);
+    props.dbStack.tables.JournalEntries.grantReadWriteData(graphql);
 
     const domain = new apiGateway.DomainName(this, 'domain', {
       domainName: apiDomain,
@@ -93,9 +84,5 @@ export class JournalingLambda extends cdk.Construct {
     });
 
     this.gqlUrl = `https://${apiDomain}/graphql`;
-
-    new cdk.CfnOutput(this, 'gqlUrl', {
-      value: this.gqlUrl,
-    });
   }
 }

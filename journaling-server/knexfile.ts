@@ -5,7 +5,7 @@ require('dotenv/config');
 const config = {
   client: 'postgresql',
   connection: {
-    // TODO: parameterize
+    // TODO: config file
     host: process.env.PG_HOST,
     database: process.env.PG_DB,
     user: process.env.PG_USERNAME,
