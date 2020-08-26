@@ -1,7 +1,5 @@
 import { env } from 'process';
 
-require('dotenv/config');
-
 const config = {
   client: 'postgresql',
   connection: {

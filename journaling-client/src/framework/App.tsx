@@ -12,6 +12,7 @@ import { Auth0Provider, useAuth0 } from '@auth0/auth0-react';
 import theme from './theme';
 import { createClient } from '../data/apollo-client';
 import * as env from '../env.json';
+import LoadingPlaceholder from './LoadingPlaceholderPage';
 
 const RequireLogin: React.FC = ({ children }) => {
   const { loginWithRedirect, isAuthenticated, isLoading } = useAuth0();
@@ -25,7 +26,7 @@ const RequireLogin: React.FC = ({ children }) => {
   });
 
   if (isLoading || unauthenticated) {
-    return null;
+    return <LoadingPlaceholder />;
   } else {
     return <>{children}</>;
   }
@@ -49,6 +50,7 @@ const AuthenticatedApolloProvider: React.FC = ({ children }) => {
 const App: React.FC = ({ children }) => (
   <MuiThemeProvider theme={theme}>
     <EmotionThemeProvider theme={theme}>
+      <CssBaseline />
       <MuiPickersUtilsProvider utils={DateFnsUtils}>
         <Auth0Provider
           domain={env.auth0Domain}
@@ -58,7 +60,6 @@ const App: React.FC = ({ children }) => (
         >
           <RequireLogin>
             <AuthenticatedApolloProvider>
-              <CssBaseline />
               <BrowserRouter>{children}</BrowserRouter>
             </AuthenticatedApolloProvider>
           </RequireLogin>

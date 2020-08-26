@@ -59,51 +59,6 @@ export class JournalingUi extends cdk.Construct {
       ),
     });
 
-    // if (process.env.BUILD_UI) {
-    //   const envVars: { [key: string]: string } = {
-    //     REACT_APP_AUTH0_DOMAIN: props.envConfig.auth0Domain,
-    //     REACT_APP_AUTH0_CLIENT_ID: props.envConfig.auth0ClientId,
-    //     REACT_APP_AUTH0_API_ID: props.envConfig.auth0ApiId,
-    //     REACT_APP_GQL_URL: props.envConfig.gqlUrl,
-    //   };
-
-    //   const sourcePath = path.join(__dirname, '../../journaling-client');
-    //   const exclude = ['node_modules', 'build'];
-
-    //   const uiSource = s3Deployment.Source.asset(sourcePath, {
-    //     exclude,
-    //     bundling: {
-    //       image: cdk.BundlingDockerImage.fromRegistry('node:14'),
-    //       command: [
-    //         'bash',
-    //         '-c',
-    //         'npm ci && npm run build && cp -R build/* /asset-output',
-    //       ],
-    //       environment: envVars,
-    //     },
-
-    //     sourceHash: cdk.FileSystem.fingerprint(sourcePath, {
-    //       exclude,
-    //       extraHash: crypto
-    //         .createHash('md5')
-    //         .update(
-    //           JSON.stringify({
-    //             envVars,
-    //             hashBreak: 1,
-    //           })
-    //         )
-    //         .digest('hex'),
-    //     }),
-    //   });
-
-    //   // new s3Deployment.BucketDeployment(this, 'appDeployment', {
-    //   //   sources: [uiSource],
-    //   //   destinationBucket: appBucket,
-    //   //   distribution: cloudfrontDistribution,
-    //   //   retainOnDelete: true,
-    //   // });
-    // }
-
     this.bucket = appBucket;
     this.distribution = cloudfrontDistribution;
   }
