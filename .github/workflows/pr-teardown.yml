@@ -39,7 +39,10 @@ jobs:
         working-directory: ./journaling-server
 
       - name: Delete client files
-        run: npm run deploy
+        run: |
+          export ENV_NAME=$(cat src/env.json > jq -r .envName)
+          export BUCKET_URL=$(aws cloudformation describe-stacks --stack-name JournalingStack-$ENV_NAME --max-items=1 --query "Stacks[0].Outputs[?OutputKey =='uiBucket'].OutputValue" --output text)
+          aws rm $BUCKET_URL --recursive
         working-directory: ./journaling-client
       - name: Tear down infrastructure
         run: npm run destroy -- --force
@@ -59,6 +62,7 @@ jobs:
         run: |
           echo "@${{ github.event.sender.login }} Couldn't tear down the live environment; see https://github.com/dallonf/journaling/actions/runs/${{ github.run_number }} for details. You may have to tear it down manually." > message.txt
       - uses: machine-learning-apps/pr-comment@master
+        if: ${{ failure() }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

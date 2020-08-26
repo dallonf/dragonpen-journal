@@ -53,7 +53,6 @@ jobs:
 
       - name: Make comment
         run: |
-          sudo apt install jq
           export APP_URL=$(cat ./cdk/lib/env.json | jq -r .appUrl)
           echo "@${{ github.event.sender.login }}, here's a live test environment for these changes: $APP_URL" > message.txt
 
