@@ -38,18 +38,27 @@ jobs:
         run: npm run generate:types:gql
         working-directory: ./journaling-server
 
-      - name: Deploy client
+      - name: Delete client files
         run: npm run deploy
         working-directory: ./journaling-client
-      - name: Deploy infrastructure
+      - name: Tear down infrastructure
         run: npm run destroy -- --force
         working-directory: ./cdk
 
       - name: Make comment
         run: |
           echo "Tore down the live test environment because the PR was closed." > message.txt
-      - name: Comment
-        uses: machine-learning-apps/pr-comment@master
+      - uses: machine-learning-apps/pr-comment@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          path: message.txt
+        
+      - name: Notify author of failure
+        if: ${{ failure() }}
+        run: |
+          echo "@${{ github.event.sender.login }} Couldn't tear down the live environment; see https://github.com/dallonf/journaling/actions/runs/${{ github.run_number }} for details. You may have to tear it down manually." > message.txt
+      - uses: machine-learning-apps/pr-comment@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
