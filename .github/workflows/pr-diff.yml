@@ -42,7 +42,17 @@ jobs:
         run: |
           echo "@${{ github.event.sender.login }}, here's the CDK diff:" > message.txt
           echo "\`\`\`" >> message.txt
-          cat cdk/diff.txt >> message.txt
+          cat cdk/diff.txt |
+            sed " \
+              /Bundling asset .*/,/✨ Built in .*/ { \
+                /Bundling asset .*/n; \
+                /✨ Built in .*/ ! { \
+                  d \
+                } \
+              } \
+              " | \
+            sed "s/\(Bundling asset .*\)/\1\n[snip build log]/" \
+            >> message.txt
           echo "\`\`\`" >> message.txt
 
       - name: Comment
