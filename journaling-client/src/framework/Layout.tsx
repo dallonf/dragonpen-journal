@@ -59,6 +59,7 @@ export interface LayoutProps {
   pageTitle: React.ReactNode;
   backLink?: LocationDescriptor;
   loading?: boolean;
+  leftExtras?: React.ReactNode;
 }
 
 const Layout: React.FC<LayoutProps> = ({
@@ -66,6 +67,7 @@ const Layout: React.FC<LayoutProps> = ({
   pageTitle,
   backLink,
   loading,
+  leftExtras,
 }) => {
   const { user, logout } = useAuth0();
   const [anchorEl, setAnchorEl] = React.useState<Element | null>(null);
@@ -94,6 +96,7 @@ const Layout: React.FC<LayoutProps> = ({
             </IconButton>
           )}
           <Typography variant="h6">{pageTitle}</Typography>
+          {leftExtras}
           {loading && <StyledAutorenewIcon aria-label="loading..." />}
           <Box
             css={css`

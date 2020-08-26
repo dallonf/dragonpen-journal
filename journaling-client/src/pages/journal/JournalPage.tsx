@@ -1,11 +1,12 @@
 import React from 'react';
-import { Fab, List } from '@material-ui/core';
-import { Add as AddIcon } from '@material-ui/icons';
+import { Fab, List, useTheme } from '@material-ui/core';
+import { Add as AddIcon, Warning as WarningIcon } from '@material-ui/icons';
 import * as lodash from 'lodash';
 import { useHistory } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { useQuery, gql } from '@apollo/client';
 import * as dateFns from 'date-fns';
+import { css } from '@emotion/core';
 import { styledWithTheme } from '../../utils';
 import Layout, { MainAreaContainer } from '../../framework/Layout';
 import { JournalPageQuery } from '../../generated/gql-types';
@@ -39,6 +40,7 @@ const ActuallyFloatingActionButton = styledWithTheme(Fab)((props) => ({
 }));
 
 const JournalPage: React.FC = () => {
+  const theme = useTheme();
   const history = useHistory();
 
   const { loading, error, data, client } = useQuery<JournalPageQuery>(QUERY, {
@@ -47,10 +49,8 @@ const JournalPage: React.FC = () => {
   });
 
   let inner;
-  if (loading) {
+  if (loading || error) {
     inner = null;
-  } else if (error) {
-    throw error;
   } else {
     const entries = data!.journalEntries;
     const days = lodash.groupBy(entries, (x) =>
@@ -77,7 +77,13 @@ const JournalPage: React.FC = () => {
   };
 
   return (
-    <Layout pageTitle="Journal" loading={loading}>
+    <Layout
+      pageTitle="Journal"
+      loading={loading}
+      leftExtras={
+        error ? <WarningIcon style={{ marginLeft: theme.spacing(1) }} /> : null
+      }
+    >
       <JournalPageMainAreaContainer maxWidth="md">
         {inner}
         <ActuallyFloatingActionButton
