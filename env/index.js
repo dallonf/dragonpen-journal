@@ -5,7 +5,8 @@ const yup = require('yup');
 const lodash = require('lodash');
 
 const envSchema = yup.object().required().shape({
-  ENV_NAME: yup.string().required(),
+  ENV_NAME: yup.string(),
+  BRANCH_NAME: yup.string(),
   EPHEMERAL_DATA: yup.string(),
   // The port for the API on localhost
   LOCALHOST_API: yup.string(),
@@ -26,6 +27,7 @@ console.log('Collecting environment information');
 const DOMAIN_NAME = 'dallonf.com';
 const {
   ENV_NAME,
+  BRANCH_NAME,
   DEBUG,
   EPHEMERAL_DATA,
   LOCALHOST_API,
@@ -34,14 +36,25 @@ const {
   AUTH0_TEST_CLIENT_SECRET,
   REPL_USER_ID,
 } = sourceEnv;
-const hostPrefix = ENV_NAME == 'production' ? null : ENV_NAME;
+
+const envName = (() => {
+  if (ENV_NAME) {
+    return ENV_NAME;
+  } else if (BRANCH_NAME) {
+    return BRANCH_NAME.replace(/\//g, '-').replace(/[^a-z0-9-]/g, '');
+  } else {
+    throw new Error('Either ENV_NAME or BRANCH_NAME is required');
+  }
+})();
+
+const hostPrefix = envName == 'production' ? null : envName;
 
 const getDomainName = (...names) =>
   ['journal', ...names, hostPrefix ?? null].filter((x) => x).join('-') +
   '.' +
   DOMAIN_NAME;
 
-const getDynamoTableName = (name) => `Dragonpen-${name}-${ENV_NAME}`;
+const getDynamoTableName = (name) => `Dragonpen-${name}-${envName}`;
 
 const apiDomain = LOCALHOST_API
   ? `localhost:${LOCALHOST_API}`
@@ -55,7 +68,7 @@ const dynamoTableNames = Object.fromEntries(
 );
 
 const output = {
-  envName: ENV_NAME,
+  envName: envName,
   auth0Domain: 'dallonf.auth0.com',
   auth0ClientId: 'njBUh8oOFZe099w5nkxY0IqFY8aHO1O1',
   auth0ApiId: 'https://api.journal.dallonf.com',
