@@ -1,0 +1,56 @@
+name: PR Environment Teardown
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '14.x'
+      - name: Use AWS CLI
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Run env script
+        run: npm ci && npm run start
+        working-directory: ./env
+        env:
+          BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
+          EPHEMERAL_DATA: '1'
+
+      - name: Install deps for CDK
+        run: npm ci
+        working-directory: ./cdk
+
+      - name: Install deps for server
+        run: npm ci
+        working-directory: ./journaling-server
+      - name: Generate schema files
+        run: npm run generate:types:gql
+        working-directory: ./journaling-server
+
+      - name: Deploy client
+        run: npm run deploy
+        working-directory: ./journaling-client
+      - name: Deploy infrastructure
+        run: npm run destroy -- --force
+        working-directory: ./cdk
+
+      - name: Make comment
+        run: |
+          echo "Tore down the live test environment because the PR was closed." > message.txt
+      - name: Comment
+        uses: machine-learning-apps/pr-comment@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          path: message.txt
