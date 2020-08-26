@@ -6,7 +6,6 @@ import { useHistory } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { useQuery, gql } from '@apollo/client';
 import * as dateFns from 'date-fns';
-import { css } from '@emotion/core';
 import { styledWithTheme } from '../../utils';
 import Layout, { MainAreaContainer } from '../../framework/Layout';
 import { JournalPageQuery } from '../../generated/gql-types';

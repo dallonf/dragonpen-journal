@@ -50,6 +50,7 @@ const AuthenticatedApolloProvider: React.FC = ({ children }) => {
 const App: React.FC = ({ children }) => (
   <MuiThemeProvider theme={theme}>
     <EmotionThemeProvider theme={theme}>
+      <CssBaseline />
       <MuiPickersUtilsProvider utils={DateFnsUtils}>
         <Auth0Provider
           domain={env.auth0Domain}
@@ -59,7 +60,6 @@ const App: React.FC = ({ children }) => (
         >
           <RequireLogin>
             <AuthenticatedApolloProvider>
-              <CssBaseline />
               <BrowserRouter>{children}</BrowserRouter>
             </AuthenticatedApolloProvider>
           </RequireLogin>
