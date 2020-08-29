@@ -3,14 +3,13 @@ import styled from '@emotion/styled/macro';
 import { Button, Box, Paper } from '@material-ui/core';
 import Editor from 'rich-markdown-editor';
 import * as dateFns from 'date-fns';
-import { gql, useMutation, ApolloClient } from '@apollo/client';
+import { gql, ApolloClient } from '@apollo/client';
+import { useClickAway } from 'react-use';
 import { styledWithTheme } from '../../utils';
 import DateTimePickerDialog from '../../components/DateTimePickerDialog';
 import {
   EditJournalEntryQuery,
   EditJournalEntryQueryVariables,
-  EditJournalEntryMutation,
-  EditJournalEntryMutationVariables,
   EditJournalEntryFragment,
 } from '../../generated/gql-types';
 
@@ -25,6 +24,7 @@ export const EDIT_JOURNAL_ENTRY_FRAGMENT = gql`
 export interface EditJournalEntryProps {
   journalEntry: EditJournalEntryFragment;
   onUpdate: (id: string, data: { text: string; timestamp: Date }) => void;
+  onEndEdit?: () => void;
 }
 
 const EDIT_JOURNAL_ENTRY_QUERY = gql`
@@ -68,6 +68,7 @@ export interface FormState {
 const EditJournalEntry: React.FC<EditJournalEntryProps> = ({
   journalEntry,
   onUpdate,
+  onEndEdit,
 }) => {
   const [formState, setFormState] = React.useState<FormState>(() => ({
     timestamp: dateFns.parseISO(journalEntry.timestamp),
@@ -77,10 +78,8 @@ const EditJournalEntry: React.FC<EditJournalEntryProps> = ({
 
   const [timeModalOpen, setTimeModalOpen] = React.useState(false);
 
-  // const [mutate] = useMutation<
-  //   EditJournalEntryMutation,
-  //   EditJournalEntryMutationVariables
-  // >(EDIT_PAGE_MUTATION);
+  const containerRef = React.useRef(null);
+  useClickAway(containerRef, () => onEndEdit && onEndEdit());
 
   // TODO: these update functions are not very resilient to rapid state changes
   // esp. consider React concurrent mode
@@ -98,16 +97,6 @@ const EditJournalEntry: React.FC<EditJournalEntryProps> = ({
       text,
       timestamp: newState.timestamp,
     });
-
-    // mutate({
-    //   variables: {
-    //     input: {
-    //       id: journalEntry.id,
-    //       text: text,
-    //       timestamp: newState.timestamp.toISOString(),
-    //     },
-    //   },
-    // });
   };
 
   const updateText = (newTextGetter: () => string) => {
@@ -119,19 +108,10 @@ const EditJournalEntry: React.FC<EditJournalEntryProps> = ({
       text: newText,
       timestamp: formState.timestamp,
     });
-    // mutate({
-    //   variables: {
-    //     input: {
-    //       id: journalEntry.id,
-    //       text: newText,
-    //       timestamp: formState.timestamp.toISOString(),
-    //     },
-    //   },
-    // });
   };
 
   return (
-    <JournalEntryPaper>
+    <JournalEntryPaper ref={containerRef}>
       <FlushButtonContainer mb={2}>
         <ButtonWithNormalText onClick={() => setTimeModalOpen(true)}>
           {dateFns.format(formState?.timestamp ?? new Date(), 'PPPPp')}

@@ -13,7 +13,6 @@ import {
   EditJournalEntryMutation,
   EditJournalEntryMutationVariables,
 } from '../../generated/gql-types';
-import { prepBlankEntry as prepBlankEntryForEditPage } from '../edit/EditPage';
 import DaySection from './DaySection';
 import JournalEntryListItem, {
   JOURNAL_ENTRY_LIST_ITEM_FRAGMENT,
@@ -74,7 +73,7 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
   const history = useHistory();
   const [addingId, setAddingId] = React.useState<string | null>(null);
 
-  const { loading, error, data, client } = useQuery<JournalPageQuery>(QUERY, {
+  const { loading, error, data } = useQuery<JournalPageQuery>(QUERY, {
     fetchPolicy: 'network-only',
     pollInterval: 10000,
   });
@@ -89,6 +88,14 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
       history.replace('/');
     }
   }, [mode, params.id, history]);
+
+  React.useEffect(() => {
+    // This works around a bug where canceling edit mode after saving some edits would still have you
+    // editing - because it's the adding entry
+    if (data?.journalEntries?.some?.((x) => x.id === addingId)) {
+      setAddingId(null);
+    }
+  }, [data, addingId]);
 
   let inner;
   if (loading || error) {
@@ -128,8 +135,8 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
       const optimisticNewEntry = {
         __typename: 'JournalEntry',
         id,
-        text: '',
-        timestamp: new Date().toISOString(),
+        text: data.text,
+        timestamp: data.timestamp.toISOString(),
       } as const;
 
       if (id === addingId) {
@@ -154,6 +161,14 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
       });
     };
 
+    const handleEndEdit = () => {
+      if (mode === 'edit') {
+        history.push('/');
+      } else if (setAddingId) {
+        setAddingId(null);
+      }
+    };
+
     inner = Object.keys(days).map((day) => (
       <DaySection key={day} dayHeader={dateFns.format(new Date(day), 'PPPP')}>
         {
@@ -168,6 +183,7 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
                     key={x.id}
                     journalEntry={x}
                     onUpdate={handleUpdate}
+                    onEndEdit={handleEndEdit}
                   />
                 );
               } else {
