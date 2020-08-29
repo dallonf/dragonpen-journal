@@ -24,6 +24,7 @@ export const EDIT_JOURNAL_ENTRY_FRAGMENT = gql`
 
 export interface EditJournalEntryProps {
   journalEntry: EditJournalEntryFragment;
+  onUpdate: (id: string, data: { text: string; timestamp: Date }) => void;
 }
 
 const EDIT_JOURNAL_ENTRY_QUERY = gql`
@@ -46,19 +47,6 @@ export const prepBlankEntry = (client: ApolloClient<unknown>, id: string) => {
   });
 };
 
-const EDIT_PAGE_MUTATION = gql`
-  mutation EditJournalEntryMutation($input: JournalEntrySaveInput!) {
-    journalEntrySave(input: $input) {
-      success
-      journalEntry {
-        id
-        timestamp
-        text
-      }
-    }
-  }
-`;
-
 const JournalEntryPaper = styledWithTheme(Paper)((props) => ({
   padding: props.theme.spacing(2),
 }));
@@ -72,13 +60,14 @@ const ButtonWithNormalText = styled(Button)`
   text-transform: none;
 `;
 
-interface FormState {
+export interface FormState {
   timestamp: Date;
   initialText: string;
 }
 
 const EditJournalEntry: React.FC<EditJournalEntryProps> = ({
   journalEntry,
+  onUpdate,
 }) => {
   const [formState, setFormState] = React.useState<FormState>(() => ({
     timestamp: dateFns.parseISO(journalEntry.timestamp),
@@ -88,10 +77,10 @@ const EditJournalEntry: React.FC<EditJournalEntryProps> = ({
 
   const [timeModalOpen, setTimeModalOpen] = React.useState(false);
 
-  const [mutate] = useMutation<
-    EditJournalEntryMutation,
-    EditJournalEntryMutationVariables
-  >(EDIT_PAGE_MUTATION);
+  // const [mutate] = useMutation<
+  //   EditJournalEntryMutation,
+  //   EditJournalEntryMutationVariables
+  // >(EDIT_PAGE_MUTATION);
 
   // TODO: these update functions are not very resilient to rapid state changes
   // esp. consider React concurrent mode
@@ -105,15 +94,20 @@ const EditJournalEntry: React.FC<EditJournalEntryProps> = ({
     };
     setFormState(newState);
 
-    mutate({
-      variables: {
-        input: {
-          id: journalEntry.id,
-          text: text,
-          timestamp: newState.timestamp.toISOString(),
-        },
-      },
+    onUpdate(journalEntry.id, {
+      text,
+      timestamp: newState.timestamp,
     });
+
+    // mutate({
+    //   variables: {
+    //     input: {
+    //       id: journalEntry.id,
+    //       text: text,
+    //       timestamp: newState.timestamp.toISOString(),
+    //     },
+    //   },
+    // });
   };
 
   const updateText = (newTextGetter: () => string) => {
@@ -121,15 +115,19 @@ const EditJournalEntry: React.FC<EditJournalEntryProps> = ({
     setText(newText);
 
     if (!formState) return;
-    mutate({
-      variables: {
-        input: {
-          id: journalEntry.id,
-          text: newText,
-          timestamp: formState.timestamp.toISOString(),
-        },
-      },
+    onUpdate(journalEntry.id, {
+      text: newText,
+      timestamp: formState.timestamp,
     });
+    // mutate({
+    //   variables: {
+    //     input: {
+    //       id: journalEntry.id,
+    //       text: newText,
+    //       timestamp: formState.timestamp.toISOString(),
+    //     },
+    //   },
+    // });
   };
 
   return (
