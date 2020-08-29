@@ -2,7 +2,7 @@ import React from 'react';
 import { Fab, List, useTheme } from '@material-ui/core';
 import { Add as AddIcon, Warning as WarningIcon } from '@material-ui/icons';
 import * as lodash from 'lodash';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { useQuery, gql } from '@apollo/client';
 import * as dateFns from 'date-fns';
@@ -14,6 +14,15 @@ import DaySection from './DaySection';
 import JournalEntryListItem, {
   JOURNAL_ENTRY_LIST_ITEM_FRAGMENT,
 } from './JournalEntryListItem';
+import EditJournalEntry from './EditJournalEntry';
+
+export interface JournalPageProps {
+  mode?: 'show' | 'edit';
+}
+
+interface EditPageParams {
+  id?: string;
+}
 
 const QUERY = gql`
   query JournalPageQuery {
@@ -38,7 +47,8 @@ const ActuallyFloatingActionButton = styledWithTheme(Fab)((props) => ({
   bottom: props.theme.spacing(2),
 }));
 
-const JournalPage: React.FC = () => {
+const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
+  const params = useParams<EditPageParams>();
   const theme = useTheme();
   const history = useHistory();
 
@@ -46,6 +56,12 @@ const JournalPage: React.FC = () => {
     fetchPolicy: 'network-only',
     pollInterval: 10000,
   });
+
+  React.useEffect(() => {
+    if (mode === 'edit' && !params.id) {
+      history.replace('/');
+    }
+  }, [mode, params.id, history]);
 
   let inner;
   if (loading || error) {
@@ -60,9 +76,13 @@ const JournalPage: React.FC = () => {
       <DaySection key={day} dayHeader={dateFns.format(new Date(day), 'PPPP')}>
         {
           <List>
-            {days[day].map((x) => (
-              <JournalEntryListItem key={x.id} journalEntry={x} />
-            ))}
+            {days[day].map((x) => {
+              if (mode === 'edit' && x.id === params.id) {
+                return <EditJournalEntry key={x.id} id={x.id} />;
+              } else {
+                return <JournalEntryListItem key={x.id} journalEntry={x} />;
+              }
+            })}
           </List>
         }
       </DaySection>
