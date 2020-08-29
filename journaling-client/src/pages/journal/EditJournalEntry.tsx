@@ -3,13 +3,7 @@ import styled from '@emotion/styled/macro';
 import { Button, Box, Paper } from '@material-ui/core';
 import Editor from 'rich-markdown-editor';
 import * as dateFns from 'date-fns';
-import {
-  gql,
-  useQuery,
-  NetworkStatus,
-  useMutation,
-  ApolloClient,
-} from '@apollo/client';
+import { gql, useMutation, ApolloClient } from '@apollo/client';
 import { styledWithTheme } from '../../utils';
 import DateTimePickerDialog from '../../components/DateTimePickerDialog';
 import {
@@ -17,10 +11,19 @@ import {
   EditJournalEntryQueryVariables,
   EditJournalEntryMutation,
   EditJournalEntryMutationVariables,
+  EditJournalEntryFragment,
 } from '../../generated/gql-types';
 
+export const EDIT_JOURNAL_ENTRY_FRAGMENT = gql`
+  fragment EditJournalEntryFragment on JournalEntry {
+    id
+    text
+    timestamp
+  }
+`;
+
 export interface EditJournalEntryProps {
-  id: string;
+  journalEntry: EditJournalEntryFragment;
 }
 
 const EDIT_JOURNAL_ENTRY_QUERY = gql`
@@ -74,40 +77,14 @@ interface FormState {
   initialText: string;
 }
 
-const EditJournalEntry: React.FC<EditJournalEntryProps> = ({ id }) => {
-  const query = useQuery<EditJournalEntryQuery, EditJournalEntryQueryVariables>(
-    EDIT_JOURNAL_ENTRY_QUERY,
-    {
-      fetchPolicy: 'network-only',
-      variables: { id },
-    }
-  );
-
-  const [formState, setFormState] = React.useState<FormState>();
+const EditJournalEntry: React.FC<EditJournalEntryProps> = ({
+  journalEntry,
+}) => {
+  const [formState, setFormState] = React.useState<FormState>(() => ({
+    timestamp: dateFns.parseISO(journalEntry.timestamp),
+    initialText: journalEntry.text,
+  }));
   const [text, setText] = React.useState('');
-
-  React.useEffect(() => {
-    if (
-      query.networkStatus === NetworkStatus.ready &&
-      query.data &&
-      !query.error &&
-      formState == null
-    ) {
-      const { journalEntryById } = query.data;
-      if (journalEntryById) {
-        setFormState({
-          timestamp: dateFns.parseISO(journalEntryById.timestamp),
-          initialText: journalEntryById.text,
-        });
-        setText(journalEntryById.text);
-      } else {
-        setFormState({
-          timestamp: new Date(),
-          initialText: '',
-        });
-      }
-    }
-  }, [query.networkStatus, query.data, query.error, formState]);
 
   const [timeModalOpen, setTimeModalOpen] = React.useState(false);
 
@@ -131,7 +108,7 @@ const EditJournalEntry: React.FC<EditJournalEntryProps> = ({ id }) => {
     mutate({
       variables: {
         input: {
-          id,
+          id: journalEntry.id,
           text: text,
           timestamp: newState.timestamp.toISOString(),
         },
@@ -147,7 +124,7 @@ const EditJournalEntry: React.FC<EditJournalEntryProps> = ({ id }) => {
     mutate({
       variables: {
         input: {
-          id,
+          id: journalEntry.id,
           text: newText,
           timestamp: formState.timestamp.toISOString(),
         },
@@ -158,10 +135,7 @@ const EditJournalEntry: React.FC<EditJournalEntryProps> = ({ id }) => {
   return (
     <JournalEntryPaper>
       <FlushButtonContainer mb={2}>
-        <ButtonWithNormalText
-          onClick={() => setTimeModalOpen(true)}
-          disabled={query.loading}
-        >
+        <ButtonWithNormalText onClick={() => setTimeModalOpen(true)}>
           {dateFns.format(formState?.timestamp ?? new Date(), 'PPPPp')}
         </ButtonWithNormalText>
         {formState != null && (
@@ -176,9 +150,9 @@ const EditJournalEntry: React.FC<EditJournalEntryProps> = ({ id }) => {
         )}
       </FlushButtonContainer>
       <Editor
-        value={formState?.initialText || ''}
+        defaultValue={formState.initialText}
+        value={formState.initialText}
         onChange={updateText}
-        readOnly={query.loading}
       />
     </JournalEntryPaper>
   );

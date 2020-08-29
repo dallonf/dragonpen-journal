@@ -14,7 +14,9 @@ import DaySection from './DaySection';
 import JournalEntryListItem, {
   JOURNAL_ENTRY_LIST_ITEM_FRAGMENT,
 } from './JournalEntryListItem';
-import EditJournalEntry from './EditJournalEntry';
+import EditJournalEntry, {
+  EDIT_JOURNAL_ENTRY_FRAGMENT,
+} from './EditJournalEntry';
 
 export interface JournalPageProps {
   mode?: 'show' | 'edit';
@@ -29,9 +31,11 @@ const QUERY = gql`
     journalEntries {
       id
       ...JournalEntryListItemFragment
+      ...EditJournalEntryFragment
     }
   }
   ${JOURNAL_ENTRY_LIST_ITEM_FRAGMENT}
+  ${EDIT_JOURNAL_ENTRY_FRAGMENT}
 `;
 
 const JournalPageMainAreaContainer = styledWithTheme(MainAreaContainer)(
@@ -78,7 +82,7 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
           <List>
             {days[day].map((x) => {
               if (mode === 'edit' && x.id === params.id) {
-                return <EditJournalEntry key={x.id} id={x.id} />;
+                return <EditJournalEntry key={x.id} journalEntry={x} />;
               } else {
                 return <JournalEntryListItem key={x.id} journalEntry={x} />;
               }
