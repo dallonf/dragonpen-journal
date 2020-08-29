@@ -90,27 +90,32 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
     }
   }, [mode, params.id, history]);
 
-  React.useEffect(() => {
-    if (addingId && mode === 'edit') {
-      setAddingId(null);
-    }
-  }, [addingId, mode]);
-
   let inner;
   if (loading || error) {
     inner = null;
   } else {
     let entries = data!.journalEntries;
     if (addingId) {
-      entries = [
-        {
+      const isMockEntryNeeded = !entries.some((x) => x.id === addingId);
+      if (isMockEntryNeeded) {
+        const mockAddingEntry = {
           __typename: 'JournalEntry',
           id: addingId,
           text: '',
           timestamp: new Date().toISOString(),
-        },
-        ...entries,
-      ];
+        } as const;
+        entries = [...entries];
+        // Reverse the array to satisfy sortedIndexBy's assumptions of an ascending sort
+        entries.reverse();
+        const index = lodash.sortedIndexBy(
+          entries,
+          mockAddingEntry,
+          (x) => x.timestamp
+        );
+        entries.splice(index, 0, mockAddingEntry);
+        entries.reverse();
+        console.log(entries.map((x) => x.timestamp));
+      }
     }
     const days = lodash.groupBy(entries, (x) =>
       dateFns.startOfDay(new Date(x.timestamp)).toISOString()
@@ -128,18 +133,7 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
       } as const;
 
       if (id === addingId) {
-        const latestData = client.readQuery<JournalPageQuery>({
-          query: QUERY,
-        })!;
-        const updated: JournalPageQuery = {
-          ...latestData,
-          journalEntries: [optimisticNewEntry, ...latestData.journalEntries],
-        };
-        client.writeQuery<JournalPageQuery>({
-          query: QUERY,
-          data: updated,
-        });
-        setAddingId(null);
+        history.replace(`/edit/${addingId}`);
       }
 
       mutate({
@@ -166,10 +160,16 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
           <List>
             {days[day].map((x) => {
               if (
-                x.id === addingId ||
+                (mode === 'show' && x.id === addingId) ||
                 (mode === 'edit' && x.id === params.id)
               ) {
-                return <EditJournalEntry key={x.id} journalEntry={x} onUpdate={handleUpdate} />;
+                return (
+                  <EditJournalEntry
+                    key={x.id}
+                    journalEntry={x}
+                    onUpdate={handleUpdate}
+                  />
+                );
               } else {
                 return <JournalEntryListItem key={x.id} journalEntry={x} />;
               }
