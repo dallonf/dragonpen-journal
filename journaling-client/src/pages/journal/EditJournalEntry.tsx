@@ -3,15 +3,11 @@ import styled from '@emotion/styled/macro';
 import { Button, Box, Paper } from '@material-ui/core';
 import Editor from 'rich-markdown-editor';
 import * as dateFns from 'date-fns';
-import { gql, ApolloClient } from '@apollo/client';
+import { gql } from '@apollo/client';
 import { useClickAway } from 'react-use';
 import { styledWithTheme } from '../../utils';
 import DateTimePickerDialog from '../../components/DateTimePickerDialog';
-import {
-  EditJournalEntryQuery,
-  EditJournalEntryQueryVariables,
-  EditJournalEntryFragment,
-} from '../../generated/gql-types';
+import { EditJournalEntryFragment } from '../../generated/gql-types';
 
 export const EDIT_JOURNAL_ENTRY_FRAGMENT = gql`
   fragment EditJournalEntryFragment on JournalEntry {
@@ -26,26 +22,6 @@ export interface EditJournalEntryProps {
   onUpdate: (id: string, data: { text: string; timestamp: Date }) => void;
   onEndEdit?: () => void;
 }
-
-const EDIT_JOURNAL_ENTRY_QUERY = gql`
-  query EditJournalEntryQuery($id: ID!) {
-    journalEntryById(id: $id) {
-      id
-      timestamp
-      text
-    }
-  }
-`;
-
-export const prepBlankEntry = (client: ApolloClient<unknown>, id: string) => {
-  client.writeQuery<EditJournalEntryQuery, EditJournalEntryQueryVariables>({
-    query: EDIT_JOURNAL_ENTRY_QUERY,
-    variables: { id },
-    data: {
-      journalEntryById: null,
-    },
-  });
-};
 
 const JournalEntryPaper = styledWithTheme(Paper)((props) => ({
   padding: props.theme.spacing(2),
