@@ -1,6 +1,7 @@
 import React from 'react';
 import { Switch, Route } from 'react-router-dom';
 import JournalPage from './pages/journal/JournalPage';
+import EditPage from './pages/edit/EditPage';
 
 const Routes = () => (
   <Switch>
@@ -8,7 +9,7 @@ const Routes = () => (
       <JournalPage />
     </Route>
     <Route exact={true} path="/edit/:id">
-      <JournalPage mode="edit" />
+      <EditPage />
     </Route>
   </Switch>
 );
