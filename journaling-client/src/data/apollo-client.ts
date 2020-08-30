@@ -16,7 +16,7 @@ export const createClient = ({
   });
 
   const httpLink = new HttpLink({
-    uri: process.env.NODE_ENV === 'development' ? '/graphql' : env.gqlUrl,
+    uri: env.gqlUrl,
   });
 
   const client = new ApolloClient({

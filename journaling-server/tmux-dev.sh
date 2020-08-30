@@ -1,5 +1,4 @@
 tmux new-session \; \
-  set-option destroy-unattached \; \
   split-window -h \; \
   select-pane -t 0 \; \
   split-window -v \; \
