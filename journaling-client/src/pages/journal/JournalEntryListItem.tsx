@@ -1,6 +1,7 @@
 import React from 'react';
 import { gql } from '@apollo/client';
 import * as dateFns from 'date-fns';
+import * as lodash from 'lodash';
 import { JournalEntryListItemFragment } from '../../generated/gql-types';
 import JournalEntryListItemView from './JournalEntryListItemView';
 import Markdown from 'react-markdown';
@@ -17,7 +18,7 @@ export interface Props {
   journalEntry: JournalEntryListItemFragment;
 }
 
-const JournalEntryListItem: React.FC<Props> = ({ journalEntry }) => {
+const JournalEntryListItem: React.FC<Props> = React.memo(({ journalEntry }) => {
   return (
     <JournalEntryListItemView id={journalEntry.id}>
       <Markdown
@@ -32,6 +33,6 @@ const JournalEntryListItem: React.FC<Props> = ({ journalEntry }) => {
       />
     </JournalEntryListItemView>
   );
-};
+}, lodash.isEqual);
 
 export default JournalEntryListItem;
