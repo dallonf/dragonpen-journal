@@ -3,6 +3,7 @@ import * as qs from 'querystring';
 import type * as expressTypes from 'express';
 import axios from 'axios';
 import cors from 'cors';
+import morgan from 'morgan';
 import { makeExpressHandler } from './src/utils/lambdaToExpress';
 import { handler as gqlHandler } from './src/handlers/gql';
 import * as env from './src/env.json';
@@ -10,6 +11,7 @@ import * as env from './src/env.json';
 const express = require('express') as () => expressTypes.Express;
 
 const app = express();
+app.use(morgan('dev'));
 app.use(cors());
 
 app.get('/', (req, res) => {
@@ -55,6 +57,9 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 const httpServer = http.createServer(app);
+// I suspect I may be seeing something to this effect locally
+// https://github.com/microsoft/WSL/issues/4769
+httpServer.keepAliveTimeout = 0;
 const port = process.env.PORT || 4000;
 httpServer.listen(port, () => {
   console.log(`Listening on http://localhost:${port}`);

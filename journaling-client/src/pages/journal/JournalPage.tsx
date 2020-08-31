@@ -2,27 +2,56 @@ import React from 'react';
 import { Fab, List, useTheme } from '@material-ui/core';
 import { Add as AddIcon, Warning as WarningIcon } from '@material-ui/icons';
 import * as lodash from 'lodash';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
-import { useQuery, gql } from '@apollo/client';
+import { useQuery, gql, useMutation } from '@apollo/client';
 import * as dateFns from 'date-fns';
 import { styledWithTheme } from '../../utils';
 import Layout, { MainAreaContainer } from '../../framework/Layout';
-import { JournalPageQuery } from '../../generated/gql-types';
-import { prepBlankEntry as prepBlankEntryForEditPage } from '../edit/EditPage';
+import {
+  JournalPageQuery,
+  EditJournalEntryMutation,
+  EditJournalEntryMutationVariables,
+} from '../../generated/gql-types';
 import DaySection from './DaySection';
 import JournalEntryListItem, {
   JOURNAL_ENTRY_LIST_ITEM_FRAGMENT,
 } from './JournalEntryListItem';
+import EditJournalEntry, {
+  EDIT_JOURNAL_ENTRY_FRAGMENT,
+} from './EditJournalEntry';
+
+export interface JournalPageProps {
+  mode?: 'show' | 'edit';
+}
+
+interface EditPageParams {
+  id?: string;
+}
 
 const QUERY = gql`
   query JournalPageQuery {
     journalEntries {
       id
       ...JournalEntryListItemFragment
+      ...EditJournalEntryFragment
     }
   }
   ${JOURNAL_ENTRY_LIST_ITEM_FRAGMENT}
+  ${EDIT_JOURNAL_ENTRY_FRAGMENT}
+`;
+
+const EDIT_MUTATION = gql`
+  mutation EditJournalEntryMutation($input: JournalEntrySaveInput!) {
+    journalEntrySave(input: $input) {
+      success
+      journalEntry {
+        id
+        timestamp
+        text
+      }
+    }
+  }
 `;
 
 const JournalPageMainAreaContainer = styledWithTheme(MainAreaContainer)(
@@ -38,31 +67,129 @@ const ActuallyFloatingActionButton = styledWithTheme(Fab)((props) => ({
   bottom: props.theme.spacing(2),
 }));
 
-const JournalPage: React.FC = () => {
+const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
+  const params = useParams<EditPageParams>();
   const theme = useTheme();
   const history = useHistory();
+  const [addingId, setAddingId] = React.useState<string | null>(null);
 
-  const { loading, error, data, client } = useQuery<JournalPageQuery>(QUERY, {
+  const { loading, error, data } = useQuery<JournalPageQuery>(QUERY, {
     fetchPolicy: 'network-only',
     pollInterval: 10000,
   });
+
+  const [mutate] = useMutation<
+    EditJournalEntryMutation,
+    EditJournalEntryMutationVariables
+  >(EDIT_MUTATION);
+
+  React.useEffect(() => {
+    if (mode === 'edit' && !params.id) {
+      history.replace('/');
+    }
+  }, [mode, params.id, history]);
+
+  React.useEffect(() => {
+    // This works around a bug where canceling edit mode after saving some edits would still have you
+    // editing - because it's the adding entry
+    if (data?.journalEntries?.some?.((x) => x.id === addingId)) {
+      setAddingId(null);
+    }
+  }, [data, addingId]);
 
   let inner;
   if (loading || error) {
     inner = null;
   } else {
-    const entries = data!.journalEntries;
+    let entries = data!.journalEntries;
+    if (addingId) {
+      const isMockEntryNeeded = !entries.some((x) => x.id === addingId);
+      if (isMockEntryNeeded) {
+        const mockAddingEntry = {
+          __typename: 'JournalEntry',
+          id: addingId,
+          text: '',
+          timestamp: new Date().toISOString(),
+        } as const;
+        entries = [...entries];
+        // Reverse the array to satisfy sortedIndexBy's assumptions of an ascending sort
+        entries.reverse();
+        const index = lodash.sortedIndexBy(
+          entries,
+          mockAddingEntry,
+          (x) => x.timestamp
+        );
+        entries.splice(index, 0, mockAddingEntry);
+        entries.reverse();
+        console.log(entries.map((x) => x.timestamp));
+      }
+    }
     const days = lodash.groupBy(entries, (x) =>
       dateFns.startOfDay(new Date(x.timestamp)).toISOString()
     );
+
+    const handleUpdate = (
+      id: string,
+      data: { text: string; timestamp: Date }
+    ) => {
+      const optimisticNewEntry = {
+        __typename: 'JournalEntry',
+        id,
+        text: data.text,
+        timestamp: data.timestamp.toISOString(),
+      } as const;
+
+      if (id === addingId) {
+        history.replace(`/edit/${addingId}`);
+      }
+
+      mutate({
+        variables: {
+          input: {
+            id,
+            text: data.text,
+            timestamp: data.timestamp.toISOString(),
+          },
+        },
+        optimisticResponse: {
+          journalEntrySave: {
+            __typename: 'JournalEntrySaveResponse',
+            success: true,
+            journalEntry: optimisticNewEntry,
+          },
+        },
+      });
+    };
+
+    const handleEndEdit = () => {
+      if (mode === 'edit') {
+        history.push('/');
+      } else if (setAddingId) {
+        setAddingId(null);
+      }
+    };
 
     inner = Object.keys(days).map((day) => (
       <DaySection key={day} dayHeader={dateFns.format(new Date(day), 'PPPP')}>
         {
           <List>
-            {days[day].map((x) => (
-              <JournalEntryListItem key={x.id} journalEntry={x} />
-            ))}
+            {days[day].map((x) => {
+              if (
+                (mode === 'show' && x.id === addingId) ||
+                (mode === 'edit' && x.id === params.id)
+              ) {
+                return (
+                  <EditJournalEntry
+                    key={x.id}
+                    journalEntry={x}
+                    onUpdate={handleUpdate}
+                    onEndEdit={handleEndEdit}
+                  />
+                );
+              } else {
+                return <JournalEntryListItem key={x.id} journalEntry={x} />;
+              }
+            })}
           </List>
         }
       </DaySection>
@@ -71,8 +198,8 @@ const JournalPage: React.FC = () => {
 
   const handleAddClick = () => {
     const id = uuidv4();
-    prepBlankEntryForEditPage(client, id);
-    history.push(`/edit/${id}`);
+    setAddingId(id);
+    history.push(`/`);
   };
 
   return (
