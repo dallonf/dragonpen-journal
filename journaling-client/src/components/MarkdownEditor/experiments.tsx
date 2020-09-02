@@ -5,6 +5,8 @@ import mdParse from 'remark-parse';
 import disable from 'remark-disable-tokenizers';
 
 const MarkdownSourceStylesContainer = styled.div`
+  white-space: pre;
+
   .md-symbol {
     opacity: 0.5;
   }
@@ -15,7 +17,7 @@ export const MarkdownSourceRenderer = ({ text }: { text: string }) => {
     .use(mdParse)
     .use(disable, {
       block: [
-        'blankLine',
+        // 'blankLine',
         'indentedCode',
         'fencedCode',
         'blockquote',
@@ -37,13 +39,26 @@ export const MarkdownSourceRenderer = ({ text }: { text: string }) => {
         'link',
         'reference',
         // 'strong',
-        'emphasis',
+        // 'emphasis',
         'deletion',
         'code',
-        'break',
+        // 'break',
         // 'text',
       ],
     });
+
+  const getWrappingSymbols = (node: any) => {
+    const start = node.position.start.offset;
+    const end = node.position.end.offset;
+    const firstChildStart = node.children[0].position.start.offset;
+    const lastChildEnd =
+      node.children[node.children.length - 1].position.end.offset;
+
+    const prefix = text.slice(start, firstChildStart);
+    const suffix = text.slice(lastChildEnd, end);
+
+    return [prefix, suffix];
+  };
 
   const ast = processor.parse(text);
 
@@ -63,21 +78,22 @@ export const MarkdownSourceRenderer = ({ text }: { text: string }) => {
     if (inline.type === 'text') {
       return <React.Fragment key={i}>{inline.value}</React.Fragment>;
     } else if (inline.type === 'strong') {
-
-      const start = inline.position.start.offset;
-      const end = inline.position.end.offset;
-      const firstChildStart = inline.children[0].position.start.offset;
-      const lastChildEnd = inline.children[inline.children.length - 1].position.end.offset;
-
-      const prefix = text.slice(start, firstChildStart);
-      const suffix = text.slice(lastChildEnd, end);
-
+      const [prefix, suffix] = getWrappingSymbols(inline);
       return (
         <strong key={i}>
           <span className="md-symbol">{prefix}</span>
           {inline.children.map(renderInline)}
           <span className="md-symbol">{suffix}</span>
         </strong>
+      );
+    } else if (inline.type === 'emphasis') {
+      const [prefix, suffix] = getWrappingSymbols(inline);
+      return (
+        <em key={i}>
+          <span className="md-symbol">{prefix}</span>
+          {inline.children.map(renderInline)}
+          <span className="md-symbol">{suffix}</span>
+        </em>
       );
     } else {
       return <code key={i}>I don't know what a {inline.type} is</code>;

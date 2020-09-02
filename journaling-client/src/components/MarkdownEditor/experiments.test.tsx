@@ -11,6 +11,8 @@ describe('MarkdownSourceRenderer', () => {
     (render(<div data-testid="output">{elements}</div>).container
       .firstChild as HTMLElement).innerHTML;
 
+  const MD = (props: any) => <span className="md-symbol" {...props} />;
+
   it('renders just text', () => {
     expect(getMarkdownOutput('Hello There')).toEqual(
       expectedOutput(<p>Hello There</p>)
@@ -23,8 +25,8 @@ describe('MarkdownSourceRenderer', () => {
         <p>
           General Kenobi, you are a{' '}
           <strong>
-            <span className="md-symbol">**</span>bold
-            <span className="md-symbol">**</span>
+            <MD>**</MD>bold
+            <MD>**</MD>
           </strong>{' '}
           one
         </p>
@@ -38,9 +40,42 @@ describe('MarkdownSourceRenderer', () => {
         <p>
           this text is also{' '}
           <strong>
-            <span className="md-symbol">__</span>bold
-            <span className="md-symbol">__</span>
+            <MD>__</MD>bold
+            <MD>__</MD>
           </strong>
+        </p>
+      )
+    );
+  });
+
+  it('renders emphasized text', () => {
+    expect(getMarkdownOutput('This should be _italic_')).toEqual(
+      expectedOutput(
+        <p>
+          This should be{' '}
+          <em>
+            <MD>_</MD>italic
+            <MD>_</MD>
+          </em>
+        </p>
+      )
+    );
+  });
+
+  it('nests em and strong', () => {
+    expect(getMarkdownOutput('_**strong** in emph_')).toEqual(
+      expectedOutput(
+        <p>
+          <em>
+            <MD>_</MD>
+            <strong>
+              <MD>**</MD>
+              strong
+              <MD>**</MD>
+            </strong>{' '}
+            in emph
+            <MD>_</MD>
+          </em>
         </p>
       )
     );
