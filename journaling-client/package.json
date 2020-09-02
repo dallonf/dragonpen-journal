@@ -84,7 +84,9 @@
     "test": "node scripts/test.js",
     "deploy": "node scripts/deploy.js",
     "typecheck": "tsc --incremental --noEmit false --outDir tmp/.ts",
-    "typegen:gql": "apollo client:codegen --target typescript --addTypename --outputFlat src/generated/gql-types.ts"
+    "typegen:gql": "apollo client:codegen --target typescript --addTypename --outputFlat src/generated/gql-types.ts",
+    "storybook": "start-storybook -p 6006",
+    "build-storybook": "build-storybook"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -102,6 +104,10 @@
     ]
   },
   "devDependencies": {
+    "@storybook/addon-actions": "^6.0.21",
+    "@storybook/addon-essentials": "^6.0.21",
+    "@storybook/addon-links": "^6.0.21",
+    "@storybook/react": "^6.0.21",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.5.0",
     "@testing-library/user-event": "^7.2.1",
@@ -115,6 +121,7 @@
     "@types/uuid": "^8.0.0",
     "apollo": "^2.30.2",
     "http-proxy-middleware": "^1.0.5",
+    "react-is": "^16.13.1",
     "typescript": "^3.9.7"
   },
   "jest": {
