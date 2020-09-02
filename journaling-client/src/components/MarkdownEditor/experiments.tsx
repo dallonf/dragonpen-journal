@@ -40,25 +40,25 @@ export const MarkdownSourceRenderer = ({ text }: { text: string }) => {
 
   const ast = processor.parse(text);
 
-  const renderBlock = (block: any) => {
+  const renderBlock = (block: any, i: number) => {
     if (block.type === 'paragraph') {
-      return <p>{block.children.map(renderInline)}</p>;
+      return <p key={i}>{block.children.map(renderInline)}</p>;
     } else {
       return (
-        <code style={{ display: 'block' }}>
+        <code key={i} style={{ display: 'block' }}>
           I don't know what a {block.type} is
         </code>
       );
     }
   };
 
-  const renderInline = (inline: any) => {
+  const renderInline = (inline: any, i: number) => {
     if (inline.type === 'text') {
-      return <>{inline.value}</>
+      return <React.Fragment key={i}>{inline.value}</React.Fragment>;
     } else {
-      return <code>I don't know what a {inline.type} is</code>;
+      return <code key={i}>I don't know what a {inline.type} is</code>;
     }
-  }
+  };
 
   const elements = (ast as any).children.map(renderBlock);
 
