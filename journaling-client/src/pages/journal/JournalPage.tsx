@@ -1,5 +1,5 @@
 import React from 'react';
-import { Fab, List, useTheme } from '@material-ui/core';
+import { Fab, useTheme } from '@material-ui/core';
 import { Add as AddIcon, Warning as WarningIcon } from '@material-ui/icons';
 import * as lodash from 'lodash';
 import { useHistory, useParams } from 'react-router-dom';
@@ -13,13 +13,10 @@ import {
   EditJournalEntryMutation,
   EditJournalEntryMutationVariables,
 } from '../../generated/gql-types';
-import DaySection from './DaySection';
-import JournalEntryListItem, {
-  JOURNAL_ENTRY_LIST_ITEM_FRAGMENT,
-} from './JournalEntryListItem';
 import EditJournalEntry, {
   EDIT_JOURNAL_ENTRY_FRAGMENT,
 } from './EditJournalEntry';
+import JournalList, { JOURNAL_ENTRY_LIST_ITEM_FRAGMENT } from './JournalList';
 
 export interface JournalPageProps {
   mode?: 'show' | 'edit';
@@ -169,31 +166,25 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
       }
     };
 
-    inner = Object.keys(days).map((day) => (
-      <DaySection key={day} dayHeader={dateFns.format(new Date(day), 'PPPP')}>
-        {
-          <List>
-            {days[day].map((x) => {
-              if (
-                (mode === 'show' && x.id === addingId) ||
-                (mode === 'edit' && x.id === params.id)
-              ) {
-                return (
-                  <EditJournalEntry
-                    key={x.id}
-                    journalEntry={x}
-                    onUpdate={handleUpdate}
-                    onEndEdit={handleEndEdit}
-                  />
-                );
-              } else {
-                return <JournalEntryListItem key={x.id} journalEntry={x} />;
-              }
-            })}
-          </List>
+    inner = (
+      <JournalList
+        days={Object.entries(days).map(([k, v]) => ({
+          day: new Date(k),
+          entries: v,
+        }))}
+        isEditing={(id) =>
+          (mode === 'show' && id === addingId) ||
+          (mode === 'edit' && id === params.id)
         }
-      </DaySection>
-    ));
+        renderEditing={(x) => (
+          <EditJournalEntry
+            journalEntry={x}
+            onUpdate={handleUpdate}
+            onEndEdit={handleEndEdit}
+          />
+        )}
+      />
+    );
   }
 
   const handleAddClick = () => {
