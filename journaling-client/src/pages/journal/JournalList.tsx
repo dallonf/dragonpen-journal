@@ -22,6 +22,40 @@ export interface JournalListProps<TEntry extends JournalEntryListItemFragment> {
 
 type ScalarKey = string | number;
 
+const useCallbackRef = <T extends unknown>(fn: T) => {
+  const ref = React.useRef(fn);
+  React.useEffect(() => {
+    ref.current = fn;
+  }, [fn]);
+  return { ref, fn };
+};
+
+const useInitRef = <T extends unknown>(
+  /** This must be stable across renders to avoid resetting the ref prematurely */
+  init: () => T,
+  /** This must be stable across renders to avoid resetting the ref prematurely */
+  teardown?: (value: T) => void
+): React.MutableRefObject<T> => {
+  const prevInit = React.useRef<(() => T) | null>(null);
+  const ref = React.useRef<T | null>(null);
+  if (init !== prevInit.current) {
+    ref.current = init();
+  }
+  prevInit.current = init;
+
+  React.useEffect(() => {
+    return () => teardown?.(ref.current!);
+  }, [init, teardown]);
+  return React.useMemo(
+    () => ({
+      get current() {
+        return ref.current!;
+      },
+    }),
+    []
+  );
+};
+
 const useElementList = <TKey extends ScalarKey>({
   onElementAdded,
   onElementRemoved,
@@ -65,14 +99,6 @@ const useElementList = <TKey extends ScalarKey>({
   return { refCallbackForKey, getKeyForElement };
 };
 
-const useCallbackRef = <T extends unknown>(fn: T) => {
-  const ref = React.useRef(fn);
-  React.useEffect(() => {
-    ref.current = fn;
-  }, [fn]);
-  return { ref, fn };
-};
-
 const useVisibleElements = <TKey extends ScalarKey>({
   keys,
 }: {
@@ -93,30 +119,31 @@ const useVisibleElements = <TKey extends ScalarKey>({
     }
   );
 
-  // TODO: useMemo isn't semantically appropriate for this
-  const intersectionObserver = React.useMemo(
-    () =>
-      new window.IntersectionObserver(
-        (entries) => {
-          entries.forEach(handleIntersection.current);
-        },
-        {
-          threshold: 0,
-        }
-      ),
-    [handleIntersection]
+  const intersectionObserver = useInitRef(
+    React.useCallback(
+      () =>
+        new window.IntersectionObserver(
+          (entries) => {
+            entries.forEach(handleIntersection.current);
+          },
+          {
+            threshold: 0,
+          }
+        ),
+      [handleIntersection]
+    )
   );
 
   const { refCallbackForKey, getKeyForElement } = useElementList({
     onElementAdded: React.useCallback(
       (ref, key) => {
-        intersectionObserver.observe(ref);
+        intersectionObserver.current.observe(ref);
       },
       [intersectionObserver]
     ),
     onElementRemoved: React.useCallback(
       (ref, key) => {
-        intersectionObserver.unobserve(ref);
+        intersectionObserver.current.unobserve(ref);
         setVisibleMap((prev) =>
           immer(prev, (draft) => {
             draft.delete(key as ImmerDraft<TKey>);
