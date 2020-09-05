@@ -3,6 +3,7 @@ import * as dateFns from 'date-fns';
 import { List } from '@material-ui/core';
 import styled from '@emotion/styled/macro';
 import immer, { Draft as ImmerDraft } from 'immer';
+import * as lodash from 'lodash';
 import DaySection from './DaySection';
 import JournalEntryListItem, {
   JOURNAL_ENTRY_LIST_ITEM_FRAGMENT,
@@ -181,8 +182,20 @@ const JournalList = <TEntry extends JournalEntryListItemFragment>({
     'visibleElementKeys',
     visibleElementKeys.map((x) => new Date(x))
   );
+  const lastVisibleDate = visibleElementKeys[visibleElementKeys.length - 1];
+  const lastVisibleIndex = (() => {
+    if (!lastVisibleDate) return 0;
 
-  const daysWindow = days.slice(0, endIndex);
+    for (let index = 0; index < days.length; index++) {
+      const day = days[index];
+      if (day.day.getTime() < lastVisibleDate) {
+        return index - 1;
+      }
+    }
+    return days.length - 1;
+  })();
+
+  const daysWindow = days.slice(0, lastVisibleIndex + windowSize);
 
   const olderEntriesRefCallback = (el: HTMLElement | null) => {
     if (olderEntriesRef.current) {
