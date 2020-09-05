@@ -191,10 +191,8 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
 
   React.useEffect(() => {
     if (isEditing) {
-      console.log('stopping polling');
       stopPolling();
     } else {
-      console.log('start polling');
       startPolling(10000);
     }
   }, [isEditing, startPolling, stopPolling]);
