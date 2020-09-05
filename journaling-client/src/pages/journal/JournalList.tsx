@@ -1,9 +1,7 @@
 import React from 'react';
 import * as dateFns from 'date-fns';
 import { List } from '@material-ui/core';
-import styled from '@emotion/styled/macro';
 import immer, { Draft as ImmerDraft } from 'immer';
-import * as lodash from 'lodash';
 import DaySection from './DaySection';
 import JournalEntryListItem, {
   JOURNAL_ENTRY_LIST_ITEM_FRAGMENT,
@@ -21,10 +19,6 @@ export interface JournalListProps<TEntry extends JournalEntryListItemFragment> {
 
   windowSize?: number;
 }
-
-const OlderEntriesPlaceholder = styled.div`
-  height: 1px;
-`;
 
 type ScalarKey = string | number;
 
@@ -147,41 +141,11 @@ const JournalList = <TEntry extends JournalEntryListItemFragment>({
   renderEditing,
   windowSize = 3,
 }: JournalListProps<TEntry>) => {
-  const [endIndex, setEndIndex] = React.useState(windowSize);
-
-  const olderEntriesRef = React.useRef<HTMLElement | null>(null);
-  const handleIntersection = React.useCallback(() => {
-    // setEndIndex((x) => x + windowSize);
-  }, []);
-  const handleIntersectionRef = React.useRef(handleIntersection);
-  React.useEffect(() => {
-    handleIntersectionRef.current = handleIntersection;
-  }, [handleIntersection]);
-  // TODO: useMemo isn't semantically appropriate for this
-  const intersectionObserver = React.useMemo(
-    () =>
-      new window.IntersectionObserver(
-        (entries) => {
-          if (entries[0].isIntersecting) {
-            handleIntersectionRef.current();
-          }
-        },
-        {
-          threshold: 0,
-        }
-      ),
-    []
-  );
-
   const dayKeys = days.map((x) => x.day.getTime());
   const { refCallbackForKey, visibleElementKeys } = useVisibleElements({
     keys: dayKeys,
   });
 
-  console.log(
-    'visibleElementKeys',
-    visibleElementKeys.map((x) => new Date(x))
-  );
   const lastVisibleDate = visibleElementKeys[visibleElementKeys.length - 1];
   const lastVisibleIndex = (() => {
     if (!lastVisibleDate) return 0;
@@ -196,16 +160,6 @@ const JournalList = <TEntry extends JournalEntryListItemFragment>({
   })();
 
   const daysWindow = days.slice(0, lastVisibleIndex + windowSize);
-
-  const olderEntriesRefCallback = (el: HTMLElement | null) => {
-    if (olderEntriesRef.current) {
-      intersectionObserver.unobserve(olderEntriesRef.current);
-    }
-    if (el) {
-      intersectionObserver.observe(el);
-    }
-    olderEntriesRef.current = el;
-  };
 
   return (
     <>
@@ -228,7 +182,6 @@ const JournalList = <TEntry extends JournalEntryListItemFragment>({
           </List>
         </DaySection>
       ))}
-      <OlderEntriesPlaceholder ref={olderEntriesRefCallback} />
     </>
   );
 };
