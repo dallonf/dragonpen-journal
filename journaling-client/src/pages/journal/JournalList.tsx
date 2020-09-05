@@ -2,6 +2,7 @@ import React from 'react';
 import * as dateFns from 'date-fns';
 import { List } from '@material-ui/core';
 import styled from '@emotion/styled/macro';
+import immer, { Draft as ImmerDraft } from 'immer';
 import DaySection from './DaySection';
 import JournalEntryListItem, {
   JOURNAL_ENTRY_LIST_ITEM_FRAGMENT,
@@ -24,6 +25,121 @@ const OlderEntriesPlaceholder = styled.div`
   height: 1px;
 `;
 
+type ScalarKey = string | number;
+
+const useElementList = <TKey extends ScalarKey>({
+  onElementAdded,
+  onElementRemoved,
+}: {
+  /** This callback must be stable across renders (see useCallback) to avoid infinite loops */
+  onElementAdded?: (ref: HTMLElement, key: TKey) => void;
+  /** This callback must be stable across renders (see useCallback) to avoid infinite loops */
+  onElementRemoved?: (ref: HTMLElement, key: TKey) => void;
+}) => {
+  const elementToKeyMap = React.useRef(new Map<HTMLElement, TKey>());
+  const keyToElementMap = React.useRef(new Map<TKey, HTMLElement>());
+
+  const refCallbackForKey = React.useMemo(() => {
+    const memoMap = new Map<TKey, (el: HTMLElement | null) => void>();
+    const makeRefCallbackForKey = (key: TKey) => (el: HTMLElement | null) => {
+      const prevEl = keyToElementMap.current.get(key);
+      if (prevEl && el !== prevEl) {
+        keyToElementMap.current.delete(key);
+        elementToKeyMap.current.delete(prevEl);
+        onElementRemoved && onElementRemoved(prevEl, key);
+      }
+      if (el && el !== prevEl) {
+        elementToKeyMap.current.set(el, key);
+        keyToElementMap.current.set(key, el);
+        onElementAdded && onElementAdded(el, key);
+      }
+    };
+    return (key: TKey) => {
+      let fn = memoMap.get(key);
+      if (!fn) {
+        fn = makeRefCallbackForKey(key);
+        memoMap.set(key, fn);
+      }
+      return fn;
+    };
+  }, [onElementAdded, onElementRemoved]);
+
+  const getKeyForElement = (element: HTMLElement): TKey | null => {
+    return elementToKeyMap.current.get(element) ?? null;
+  };
+  return { refCallbackForKey, getKeyForElement };
+};
+
+const useCallbackRef = <T extends unknown>(fn: T) => {
+  const ref = React.useRef(fn);
+  React.useEffect(() => {
+    ref.current = fn;
+  }, [fn]);
+  return { ref, fn };
+};
+
+const useVisibleElements = <TKey extends ScalarKey>({
+  keys,
+}: {
+  keys: TKey[];
+}) => {
+  const [visibleMap, setVisibleMap] = React.useState(new Map<TKey, boolean>());
+
+  const { ref: handleIntersection } = useCallbackRef(
+    (entry: IntersectionObserverEntry) => {
+      const key = getKeyForElement(entry.target as HTMLElement);
+      if (key) {
+        setVisibleMap((prev) =>
+          immer(prev, (draft) => {
+            draft.set(key as ImmerDraft<TKey>, entry.isIntersecting);
+          })
+        );
+      }
+    }
+  );
+
+  // TODO: useMemo isn't semantically appropriate for this
+  const intersectionObserver = React.useMemo(
+    () =>
+      new window.IntersectionObserver(
+        (entries) => {
+          entries.forEach(handleIntersection.current);
+        },
+        {
+          threshold: 0,
+        }
+      ),
+    [handleIntersection]
+  );
+
+  const { refCallbackForKey, getKeyForElement } = useElementList({
+    onElementAdded: React.useCallback(
+      (ref, key) => {
+        intersectionObserver.observe(ref);
+      },
+      [intersectionObserver]
+    ),
+    onElementRemoved: React.useCallback(
+      (ref, key) => {
+        intersectionObserver.unobserve(ref);
+        setVisibleMap((prev) =>
+          immer(prev, (draft) => {
+            draft.delete(key as ImmerDraft<TKey>);
+          })
+        );
+      },
+      [intersectionObserver]
+    ),
+  });
+
+  return {
+    refCallbackForKey,
+    visibleElementKeys: keys.filter((x) => {
+      return visibleMap.has(x) && visibleMap.get(x);
+    }),
+  };
+};
+
 const JournalList = <TEntry extends JournalEntryListItemFragment>({
   days,
   isEditing,
@@ -32,12 +148,10 @@ const JournalList = <TEntry extends JournalEntryListItemFragment>({
 }: JournalListProps<TEntry>) => {
   const [endIndex, setEndIndex] = React.useState(windowSize);
 
-  const daysForRef = React.useRef<WeakMap<HTMLElement, Date>>(new WeakMap());
-
   const olderEntriesRef = React.useRef<HTMLElement | null>(null);
   const handleIntersection = React.useCallback(() => {
-    setEndIndex((x) => x + windowSize);
-  }, [windowSize]);
+    // setEndIndex((x) => x + windowSize);
+  }, []);
   const handleIntersectionRef = React.useRef(handleIntersection);
   React.useEffect(() => {
     handleIntersectionRef.current = handleIntersection;
@@ -57,6 +171,17 @@ const JournalList = <TEntry extends JournalEntryListItemFragment>({
       ),
     []
   );
+
+  const dayKeys = days.map((x) => x.day.getTime());
+  const { refCallbackForKey, visibleElementKeys } = useVisibleElements({
+    keys: dayKeys,
+  });
+
+  console.log(
+    'visibleElementKeys',
+    visibleElementKeys.map((x) => new Date(x))
+  );
+
   const daysWindow = days.slice(0, endIndex);
 
   const olderEntriesRefCallback = (el: HTMLElement | null) => {
@@ -69,36 +194,25 @@ const JournalList = <TEntry extends JournalEntryListItemFragment>({
     olderEntriesRef.current = el;
   };
 
-  const daysForRefCallback = (day: Date) => (el: HTMLElement) => {
-    if (el) {
-      daysForRef.current.set(el, day);
-      console.log(daysForRef);
-    }
-  };
-
   return (
     <>
       {daysWindow.map(({ day, entries }) => (
         <DaySection
           key={day.getTime()}
           dayHeader={dateFns.format(day, 'PPPP')}
-          ref={daysForRefCallback(day)}
+          ref={refCallbackForKey(day.getTime())}
         >
-          {
-            <List>
-              {entries.map((x) => {
-                if (isEditing(x.id)) {
-                  return (
-                    <React.Fragment key={x.id}>
-                      {renderEditing(x)}
-                    </React.Fragment>
-                  );
-                } else {
-                  return <JournalEntryListItem key={x.id} journalEntry={x} />;
-                }
-              })}
-            </List>
-          }
+          <List>
+            {entries.map((x) => {
+              if (isEditing(x.id)) {
+                return (
+                  <React.Fragment key={x.id}>{renderEditing(x)}</React.Fragment>
+                );
+              } else {
+                return <JournalEntryListItem key={x.id} journalEntry={x} />;
+              }
+            })}
+          </List>
         </DaySection>
       ))}
       <OlderEntriesPlaceholder ref={olderEntriesRefCallback} />
