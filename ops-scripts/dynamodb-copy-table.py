@@ -14,7 +14,7 @@ if len(sys.argv) != 3:
 
 src_table = sys.argv[1]
 dst_table = sys.argv[2]
-region = os.getenv('AWS_DEFAULT_REGION', 'us-west-2')
+region = os.getenv('AWS_DEFAULT_REGION', 'us-east-1')
 
 # host = 'dynamodb.%s.amazonaws.com' % region
 # ddbc = DynamoDBConnection(is_secure=False, region=region, host=host)
@@ -53,7 +53,8 @@ try:
                     )
 
     table_struct = new_logs.describe()
-    if 'DISABLE_CREATION' in os.environ:
+    # if 'DISABLE_CREATION' in os.environ:
+    if True:
         print("Creation of new table is disabled. Skipping...")
     else:
         print("Table %s already exists" % dst_table)
