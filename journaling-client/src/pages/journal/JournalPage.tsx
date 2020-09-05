@@ -70,9 +70,10 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
   const history = useHistory();
   const [addingId, setAddingId] = React.useState<string | null>(null);
 
-  const { loading, error, data } = useQuery<JournalPageQuery>(QUERY, {
+  const { loading, error, data, startPolling, stopPolling } = useQuery<
+    JournalPageQuery
+  >(QUERY, {
     fetchPolicy: 'network-only',
-    pollInterval: 10000,
   });
 
   const [mutate] = useMutation<
@@ -95,6 +96,7 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
   }, [data, addingId]);
 
   let inner;
+  let isEditing = mode === 'edit';
   if (loading || error) {
     inner = null;
   } else {
@@ -118,8 +120,8 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
         );
         entries.splice(index, 0, mockAddingEntry);
         entries.reverse();
-        console.log(entries.map((x) => x.timestamp));
       }
+      isEditing = isEditing || isMockEntryNeeded;
     }
     const days = lodash.groupBy(entries, (x) =>
       dateFns.startOfDay(new Date(x.timestamp)).toISOString()
@@ -186,6 +188,16 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
       />
     );
   }
+
+  React.useEffect(() => {
+    if (isEditing) {
+      console.log('stopping polling');
+      stopPolling();
+    } else {
+      console.log('start polling');
+      startPolling(10000);
+    }
+  }, [isEditing, startPolling, stopPolling]);
 
   const handleAddClick = () => {
     const id = uuidv4();
