@@ -15,16 +15,21 @@ export interface JournalListProps<TEntry extends JournalEntryListItemFragment> {
   }[];
   isEditing: (id: string) => boolean;
   renderEditing: (entry: TEntry) => React.ReactNode;
+
+  windowSize?: number;
 }
 
 const JournalList = <TEntry extends JournalEntryListItemFragment>({
   days,
   isEditing,
   renderEditing,
+  windowSize = 3,
 }: JournalListProps<TEntry>) => {
+  const daysWindow = days.slice(0, windowSize);
+
   return (
     <>
-      {days.map(({ day, entries }) => (
+      {daysWindow.map(({ day, entries }) => (
         <DaySection key={day.getTime()} dayHeader={dateFns.format(day, 'PPPP')}>
           {
             <List>
