@@ -22,7 +22,6 @@ export interface JournalListProps<TEntry extends JournalEntryListItemFragment> {
 
 const OlderEntriesPlaceholder = styled.div`
   height: 1px;
-  background: tomato;
 `;
 
 const JournalList = <TEntry extends JournalEntryListItemFragment>({
@@ -31,13 +30,21 @@ const JournalList = <TEntry extends JournalEntryListItemFragment>({
   renderEditing,
   windowSize = 3,
 }: JournalListProps<TEntry>) => {
+  const [endIndex, setEndIndex] = React.useState(windowSize);
   const olderEntriesRef = React.useRef<HTMLElement | null>(null);
+  const handleIntersection = React.useCallback(() => {
+    setEndIndex((x) => x + windowSize);
+  }, [windowSize]);
+  const handleIntersectionRef = React.useRef(handleIntersection);
+  React.useEffect(() => {
+    handleIntersectionRef.current = handleIntersection;
+  }, [handleIntersection]);
   const intersectionObserver = React.useMemo(
     () =>
       new window.IntersectionObserver(
         (entries) => {
           if (entries[0].isIntersecting) {
-            console.log('intersection!', entries);
+            handleIntersectionRef.current();
           }
         },
         {
@@ -46,7 +53,7 @@ const JournalList = <TEntry extends JournalEntryListItemFragment>({
       ),
     []
   );
-  const daysWindow = days.slice(0, windowSize);
+  const daysWindow = days.slice(0, endIndex);
 
   const olderEntriesRefCallback = (el: HTMLElement) => {
     if (olderEntriesRef.current) {
