@@ -31,6 +31,9 @@ const JournalList = <TEntry extends JournalEntryListItemFragment>({
   windowSize = 3,
 }: JournalListProps<TEntry>) => {
   const [endIndex, setEndIndex] = React.useState(windowSize);
+
+  const daysForRef = React.useRef<WeakMap<HTMLElement, Date>>(new WeakMap());
+
   const olderEntriesRef = React.useRef<HTMLElement | null>(null);
   const handleIntersection = React.useCallback(() => {
     setEndIndex((x) => x + windowSize);
@@ -39,6 +42,7 @@ const JournalList = <TEntry extends JournalEntryListItemFragment>({
   React.useEffect(() => {
     handleIntersectionRef.current = handleIntersection;
   }, [handleIntersection]);
+  // TODO: useMemo isn't semantically appropriate for this
   const intersectionObserver = React.useMemo(
     () =>
       new window.IntersectionObserver(
@@ -55,7 +59,7 @@ const JournalList = <TEntry extends JournalEntryListItemFragment>({
   );
   const daysWindow = days.slice(0, endIndex);
 
-  const olderEntriesRefCallback = (el: HTMLElement) => {
+  const olderEntriesRefCallback = (el: HTMLElement | null) => {
     if (olderEntriesRef.current) {
       intersectionObserver.unobserve(olderEntriesRef.current);
     }
@@ -65,10 +69,21 @@ const JournalList = <TEntry extends JournalEntryListItemFragment>({
     olderEntriesRef.current = el;
   };
 
+  const daysForRefCallback = (day: Date) => (el: HTMLElement) => {
+    if (el) {
+      daysForRef.current.set(el, day);
+      console.log(daysForRef);
+    }
+  };
+
   return (
     <>
       {daysWindow.map(({ day, entries }) => (
-        <DaySection key={day.getTime()} dayHeader={dateFns.format(day, 'PPPP')}>
+        <DaySection
+          key={day.getTime()}
+          dayHeader={dateFns.format(day, 'PPPP')}
+          ref={daysForRefCallback(day)}
+        >
           {
             <List>
               {entries.map((x) => {

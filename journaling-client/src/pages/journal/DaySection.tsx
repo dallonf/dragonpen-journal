@@ -33,16 +33,21 @@ const HeaderLine = styledWithTheme(Box)`
   }
 `;
 
-const DaySection: React.FC<{
-  dayHeader: React.ReactNode;
-  children?: React.ReactNode;
-}> = ({ dayHeader, children }) => (
-  <DaySectionBox>
+const DaySection = React.forwardRef<
+  HTMLElement,
+  {
+    dayHeader: React.ReactNode;
+    children?: React.ReactNode;
+  }
+>(({ dayHeader, children }, ref) => (
+  // TODO: Types workaround for
+  // https://github.com/mui-org/material-ui/issues/17010
+  <DaySectionBox {...{ ref }}>
     <HeaderLine>
       <Typography variant="subtitle1">{dayHeader}</Typography>
     </HeaderLine>
     {children}
   </DaySectionBox>
-);
+));
 
 export default DaySection;
