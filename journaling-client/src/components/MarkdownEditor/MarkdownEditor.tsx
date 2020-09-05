@@ -10,6 +10,16 @@ const MarkdownEditor = () => {
   const containerRef = React.useCallback<(ref: HTMLPreElement | null) => void>(
     (ref) => {
       if (ref) {
+        const document = schema.node('doc', undefined, [
+          schema.node('paragraph', undefined, [
+            schema.text("Hello "),
+            schema.text('world', [schema.mark('strong')]),
+            schema.text(", I'm doing Markdown "),
+            schema.text('stuff', [schema.mark('em')]),
+            schema.text("!"),
+          ]),
+        ]);
+
         const state = EditorState.create({
           schema,
           plugins: [
@@ -17,6 +27,7 @@ const MarkdownEditor = () => {
             keymap({ 'Mod-z': undo, 'Mod-y': redo }),
             keymap(baseKeymap),
           ],
+          doc: document,
         });
         const view = new EditorView(ref, {
           state,
