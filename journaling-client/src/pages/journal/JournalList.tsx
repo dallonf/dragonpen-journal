@@ -168,6 +168,7 @@ const JournalList = <TEntry extends JournalEntryListItemFragment>({
   renderEditing,
   windowSize = 3,
 }: JournalListProps<TEntry>) => {
+  const [windowEnd, setWindowEnd] = React.useState(windowSize);
   const dayKeys = days.map((x) => x.day.getTime());
   const { refCallbackForKey, visibleElementKeys } = useVisibleElements({
     keys: dayKeys,
@@ -186,7 +187,14 @@ const JournalList = <TEntry extends JournalEntryListItemFragment>({
     return days.length - 1;
   })();
 
-  const daysWindow = days.slice(0, lastVisibleIndex + windowSize);
+  React.useEffect(() => {
+    const targetWindowEnd = lastVisibleIndex + windowSize;
+    if (targetWindowEnd > windowEnd) {
+      setWindowEnd(targetWindowEnd);
+    }
+  }, [lastVisibleIndex, windowSize, windowEnd]);
+
+  const daysWindow = days.slice(0, windowEnd);
 
   return (
     <>
