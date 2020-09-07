@@ -38,10 +38,13 @@ export default (dynamo: DynamoDBClient, user: User) => {
     let ExpressionAttributeValues: ExpressionAttributeValueMap = {
       ':userId': { S: user.id },
     };
-    let ExpressionAttributeNames: ExpressionAttributeNameMap = {};
+    let ExpressionAttributeNames:
+      | ExpressionAttributeNameMap
+      | undefined = undefined;
 
     if (opts.after) {
       KeyConditionExpression += ' AND #time < :after';
+      ExpressionAttributeNames = ExpressionAttributeNames ?? {};
       ExpressionAttributeNames['#time'] = 'Timestamp';
       ExpressionAttributeValues[':after'] = {
         N: opts.after.getTime().toString(),

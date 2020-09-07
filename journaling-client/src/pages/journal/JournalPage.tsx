@@ -10,6 +10,7 @@ import { styledWithTheme } from '../../utils';
 import Layout, { MainAreaContainer } from '../../framework/Layout';
 import {
   JournalPageQuery,
+  JournalPageQueryVariables,
   EditJournalEntryMutation,
   EditJournalEntryMutationVariables,
 } from '../../generated/gql-types';
@@ -17,6 +18,8 @@ import EditJournalEntry, {
   EDIT_JOURNAL_ENTRY_FRAGMENT,
 } from './EditJournalEntry';
 import JournalList, { JOURNAL_ENTRY_LIST_ITEM_FRAGMENT } from './JournalList';
+
+const PAGE_SIZE = 5;
 
 export interface JournalPageProps {
   mode?: 'show' | 'edit';
@@ -27,8 +30,8 @@ interface EditPageParams {
 }
 
 const QUERY = gql`
-  query JournalPageQuery {
-    journalEntries {
+  query JournalPageQuery($limit: Int!) {
+    journalEntries(limit: $limit) {
       id
       ...JournalEntryListItemFragment
       ...EditJournalEntryFragment
@@ -70,10 +73,12 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
   const history = useHistory();
   const [addingId, setAddingId] = React.useState<string | null>(null);
 
-  const { loading, error, data, startPolling, stopPolling } = useQuery<
-    JournalPageQuery
+  const { loading, error, data } = useQuery<
+    JournalPageQuery,
+    JournalPageQueryVariables
   >(QUERY, {
     fetchPolicy: 'network-only',
+    variables: { limit: PAGE_SIZE },
   });
 
   const [mutate] = useMutation<
@@ -96,7 +101,6 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
   }, [data, addingId]);
 
   let inner;
-  let isEditing = mode === 'edit';
   if (loading || error) {
     inner = null;
   } else {
@@ -121,7 +125,6 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
         entries.splice(index, 0, mockAddingEntry);
         entries.reverse();
       }
-      isEditing = isEditing || isMockEntryNeeded;
     }
     const days = lodash.groupBy(entries, (x) =>
       dateFns.startOfDay(new Date(x.timestamp)).toISOString()
@@ -188,14 +191,6 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
       />
     );
   }
-
-  React.useEffect(() => {
-    if (isEditing) {
-      stopPolling();
-    } else {
-      startPolling(10000);
-    }
-  }, [isEditing, startPolling, stopPolling]);
 
   const handleAddClick = () => {
     const id = uuidv4();
