@@ -1,4 +1,7 @@
-import DynamoDB from 'aws-sdk/clients/dynamodb';
+import DynamoDB, {
+  ExpressionAttributeValueMap,
+  ExpressionAttributeNameMap,
+} from 'aws-sdk/clients/dynamodb';
 import { User } from './user';
 import { DynamoDBClient } from './dynamo-client';
 
@@ -28,16 +31,32 @@ function convertFromDynamo(
 }
 
 export default (dynamo: DynamoDBClient, user: User) => {
-  const readList = async (): Promise<JournalEntry[]> => {
+  const readList = async (
+    opts = {} as { after?: Date; limit?: number }
+  ): Promise<JournalEntry[]> => {
+    let KeyConditionExpression = 'UserId = :userId';
+    let ExpressionAttributeValues: ExpressionAttributeValueMap = {
+      ':userId': { S: user.id },
+    };
+    let ExpressionAttributeNames: ExpressionAttributeNameMap = {};
+
+    if (opts.after) {
+      KeyConditionExpression += ' AND #time < :after';
+      ExpressionAttributeNames['#time'] = 'Timestamp';
+      ExpressionAttributeValues[':after'] = {
+        N: opts.after.getTime().toString(),
+      };
+    }
+
     const result = await dynamo.api
       .query({
         TableName: dynamo.tableNames.JournalEntries,
         IndexName: 'TimestampIndex',
-        KeyConditionExpression: 'UserId = :userId',
-        ExpressionAttributeValues: {
-          ':userId': { S: user.id },
-        },
+        KeyConditionExpression,
+        ExpressionAttributeValues,
+        ExpressionAttributeNames,
         ScanIndexForward: false,
+        Limit: opts.limit,
       })
       .promise();
 
