@@ -13,11 +13,15 @@ import {
   JournalPageQueryVariables,
   EditJournalEntryMutation,
   EditJournalEntryMutationVariables,
+  JournalPageQuery_journalEntries,
 } from '../../generated/gql-types';
 import EditJournalEntry, {
   EDIT_JOURNAL_ENTRY_FRAGMENT,
 } from './EditJournalEntry';
-import JournalList, { JOURNAL_ENTRY_LIST_ITEM_FRAGMENT } from './JournalList';
+import JournalList, {
+  JOURNAL_ENTRY_LIST_ITEM_FRAGMENT,
+  JournalListProps,
+} from './JournalList';
 
 const PAGE_SIZE = 5;
 
@@ -30,8 +34,8 @@ interface EditPageParams {
 }
 
 const QUERY = gql`
-  query JournalPageQuery($limit: Int!) {
-    journalEntries(limit: $limit) {
+  query JournalPageQuery($limit: Int!, $after: String) {
+    journalEntries(limit: $limit, after: $after) {
       id
       ...JournalEntryListItemFragment
       ...EditJournalEntryFragment
@@ -73,7 +77,7 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
   const history = useHistory();
   const [addingId, setAddingId] = React.useState<string | null>(null);
 
-  const { loading, error, data } = useQuery<
+  const { loading, error, data, fetchMore } = useQuery<
     JournalPageQuery,
     JournalPageQueryVariables
   >(QUERY, {
@@ -99,6 +103,23 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
       setAddingId(null);
     }
   }, [data, addingId]);
+
+  const handleScrollToEnd = () => {
+    const lastEntry = data?.journalEntries[data.journalEntries.length - 1];
+
+    fetchMore({
+      variables: { after: lastEntry?.timestamp },
+      updateQuery: (
+        prevResult: JournalPageQuery,
+        { fetchMoreResult }: { fetchMoreResult?: JournalPageQuery }
+      ) => {
+        const combined = prevResult.journalEntries.concat(
+          fetchMoreResult?.journalEntries ?? []
+        );
+        return { ...prevResult, journalEntries: combined };
+      },
+    });
+  };
 
   let inner;
   if (loading || error) {
@@ -188,6 +209,7 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
             onEndEdit={handleEndEdit}
           />
         )}
+        onScrollToEnd={handleScrollToEnd}
       />
     );
   }
