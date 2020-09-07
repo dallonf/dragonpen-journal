@@ -13,15 +13,11 @@ import {
   JournalPageQueryVariables,
   EditJournalEntryMutation,
   EditJournalEntryMutationVariables,
-  JournalPageQuery_journalEntries,
 } from '../../generated/gql-types';
 import EditJournalEntry, {
   EDIT_JOURNAL_ENTRY_FRAGMENT,
 } from './EditJournalEntry';
-import JournalList, {
-  JOURNAL_ENTRY_LIST_ITEM_FRAGMENT,
-  JournalListProps,
-} from './JournalList';
+import JournalList, { JOURNAL_ENTRY_LIST_ITEM_FRAGMENT } from './JournalList';
 
 const PAGE_SIZE = 5;
 
@@ -109,15 +105,6 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
 
     fetchMore({
       variables: { after: lastEntry?.timestamp },
-      updateQuery: (
-        prevResult: JournalPageQuery,
-        { fetchMoreResult }: { fetchMoreResult?: JournalPageQuery }
-      ) => {
-        const combined = prevResult.journalEntries.concat(
-          fetchMoreResult?.journalEntries ?? []
-        );
-        return { ...prevResult, journalEntries: combined };
-      },
     });
   };
 
