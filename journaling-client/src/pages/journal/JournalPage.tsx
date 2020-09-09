@@ -19,7 +19,7 @@ import EditJournalEntry, {
 } from './EditJournalEntry';
 import JournalList, { JOURNAL_ENTRY_LIST_ITEM_FRAGMENT } from './JournalList';
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 50;
 
 export interface JournalPageProps {
   mode?: 'show' | 'edit';
@@ -79,6 +79,7 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
   >(QUERY, {
     fetchPolicy: 'network-only',
     variables: { limit: PAGE_SIZE },
+    nextFetchPolicy: 'cache-first',
   });
 
   const [mutate] = useMutation<
