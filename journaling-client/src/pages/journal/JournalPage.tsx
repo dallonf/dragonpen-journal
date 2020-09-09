@@ -225,7 +225,7 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
         },
       },
     });
-    refetch();
+    fetchMore({});
   };
 
   return (
