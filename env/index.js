@@ -13,6 +13,7 @@ const envSchema = yup.object().required().shape({
   // The port for the API on localhost
   LOCALHOST_APP: yup.string(),
 
+  // Print output to console instead of files
   DEBUG: yup.string(),
 
   REPL_USER_ID: yup.string(),
