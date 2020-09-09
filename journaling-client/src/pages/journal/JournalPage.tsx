@@ -81,6 +81,7 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
     fetchPolicy: 'network-only',
     variables: { limit: PAGE_SIZE },
     nextFetchPolicy: 'cache-first',
+    notifyOnNetworkStatusChange: true,
   });
 
   const [mutate] = useMutation<
@@ -117,7 +118,7 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
   };
 
   let inner;
-  if (loading || error) {
+  if (!data || error) {
     inner = null;
   } else {
     let entries = data!.journalEntries;
