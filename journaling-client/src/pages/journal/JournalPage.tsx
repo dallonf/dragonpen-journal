@@ -74,7 +74,7 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
   const [addingId, setAddingId] = React.useState<string | null>(null);
   const [atBeginning, setAtBeginning] = React.useState(false);
 
-  const { loading, error, data, fetchMore, refetch, client } = useQuery<
+  const { loading, error, data, fetchMore, client } = useQuery<
     JournalPageQuery,
     JournalPageQueryVariables
   >(QUERY, {
@@ -217,6 +217,7 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
   };
 
   const handleReload = () => {
+    setAtBeginning(false);
     client.cache.modify({
       id: 'ROOT_QUERY',
       fields: {
