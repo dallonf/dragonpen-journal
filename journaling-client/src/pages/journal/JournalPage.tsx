@@ -74,7 +74,7 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
   const [addingId, setAddingId] = React.useState<string | null>(null);
   const [atBeginning, setAtBeginning] = React.useState(false);
 
-  const { loading, error, data, fetchMore } = useQuery<
+  const { loading, error, data, fetchMore, refetch, client } = useQuery<
     JournalPageQuery,
     JournalPageQueryVariables
   >(QUERY, {
@@ -216,10 +216,17 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
     history.push(`/`);
   };
 
+  const handleReload = () => {
+    refetch();
+  };
+
   return (
     <Layout
       pageTitle="Journal"
       loading={loading}
+      onReload={() => {
+        handleReload();
+      }}
       leftExtras={
         error ? <WarningIcon style={{ marginLeft: theme.spacing(1) }} /> : null
       }
