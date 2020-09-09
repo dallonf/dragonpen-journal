@@ -10,6 +10,7 @@ import { styledWithTheme } from '../../utils';
 import Layout, { MainAreaContainer } from '../../framework/Layout';
 import {
   JournalPageQuery,
+  JournalPageQueryVariables,
   EditJournalEntryMutation,
   EditJournalEntryMutationVariables,
 } from '../../generated/gql-types';
@@ -17,6 +18,8 @@ import EditJournalEntry, {
   EDIT_JOURNAL_ENTRY_FRAGMENT,
 } from './EditJournalEntry';
 import JournalList, { JOURNAL_ENTRY_LIST_ITEM_FRAGMENT } from './JournalList';
+
+const PAGE_SIZE = 50;
 
 export interface JournalPageProps {
   mode?: 'show' | 'edit';
@@ -27,8 +30,8 @@ interface EditPageParams {
 }
 
 const QUERY = gql`
-  query JournalPageQuery {
-    journalEntries {
+  query JournalPageQuery($limit: Int!, $after: String) {
+    journalEntries(limit: $limit, after: $after) {
       id
       ...JournalEntryListItemFragment
       ...EditJournalEntryFragment
@@ -69,11 +72,16 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
   const theme = useTheme();
   const history = useHistory();
   const [addingId, setAddingId] = React.useState<string | null>(null);
+  const [atBeginning, setAtBeginning] = React.useState(false);
 
-  const { loading, error, data, startPolling, stopPolling } = useQuery<
-    JournalPageQuery
+  const { loading, error, data, fetchMore, client } = useQuery<
+    JournalPageQuery,
+    JournalPageQueryVariables
   >(QUERY, {
     fetchPolicy: 'network-only',
+    variables: { limit: PAGE_SIZE },
+    nextFetchPolicy: 'cache-first',
+    notifyOnNetworkStatusChange: true,
   });
 
   const [mutate] = useMutation<
@@ -95,9 +103,22 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
     }
   }, [data, addingId]);
 
+  const handleScrollToEnd = () => {
+    const lastEntry = data?.journalEntries[data.journalEntries.length - 1];
+
+    if (!atBeginning) {
+      fetchMore({
+        variables: { after: lastEntry?.timestamp },
+      }).then((x) => {
+        if (x.data?.journalEntries.length === 0) {
+          setAtBeginning(true);
+        }
+      });
+    }
+  };
+
   let inner;
-  let isEditing = mode === 'edit';
-  if (loading || error) {
+  if (!data || error) {
     inner = null;
   } else {
     let entries = data!.journalEntries;
@@ -121,7 +142,6 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
         entries.splice(index, 0, mockAddingEntry);
         entries.reverse();
       }
-      isEditing = isEditing || isMockEntryNeeded;
     }
     const days = lodash.groupBy(entries, (x) =>
       dateFns.startOfDay(new Date(x.timestamp)).toISOString()
@@ -185,17 +205,10 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
             onEndEdit={handleEndEdit}
           />
         )}
+        onScrollToEnd={handleScrollToEnd}
       />
     );
   }
-
-  React.useEffect(() => {
-    if (isEditing) {
-      stopPolling();
-    } else {
-      startPolling(10000);
-    }
-  }, [isEditing, startPolling, stopPolling]);
 
   const handleAddClick = () => {
     const id = uuidv4();
@@ -203,10 +216,26 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
     history.push(`/`);
   };
 
+  const handleReload = () => {
+    setAtBeginning(false);
+    client.cache.modify({
+      id: 'ROOT_QUERY',
+      fields: {
+        journalEntries: (e, { storeFieldName, DELETE }) => {
+          return DELETE;
+        },
+      },
+    });
+    fetchMore({});
+  };
+
   return (
     <Layout
       pageTitle="Journal"
       loading={loading}
+      onReload={() => {
+        handleReload();
+      }}
       leftExtras={
         error ? <WarningIcon style={{ marginLeft: theme.spacing(1) }} /> : null
       }
