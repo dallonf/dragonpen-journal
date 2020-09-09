@@ -217,6 +217,14 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
   };
 
   const handleReload = () => {
+    client.cache.modify({
+      id: 'ROOT_QUERY',
+      fields: {
+        journalEntries: (e, { storeFieldName, DELETE }) => {
+          return DELETE;
+        },
+      },
+    });
     refetch();
   };
 
