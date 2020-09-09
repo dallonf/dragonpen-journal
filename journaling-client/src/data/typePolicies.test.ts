@@ -66,7 +66,7 @@ describe('journalEntries', () => {
   it('paginates with fetchMore', async () => {
     const client = makeClient();
     const allQuery = gql`
-      {
+      query All{
         journalEntries {
           id
           timestamp

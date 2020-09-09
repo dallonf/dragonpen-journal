@@ -72,6 +72,7 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
   const theme = useTheme();
   const history = useHistory();
   const [addingId, setAddingId] = React.useState<string | null>(null);
+  const [atBeginning, setAtBeginning] = React.useState(false);
 
   const { loading, error, data, fetchMore } = useQuery<
     JournalPageQuery,
@@ -104,9 +105,15 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
   const handleScrollToEnd = () => {
     const lastEntry = data?.journalEntries[data.journalEntries.length - 1];
 
-    fetchMore({
-      variables: { after: lastEntry?.timestamp },
-    });
+    if (!atBeginning) {
+      fetchMore({
+        variables: { after: lastEntry?.timestamp },
+      }).then((x) => {
+        if (x.data?.journalEntries.length === 0) {
+          setAtBeginning(true);
+        }
+      });
+    }
   };
 
   let inner;
