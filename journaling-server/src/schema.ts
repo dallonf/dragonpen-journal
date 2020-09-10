@@ -9,8 +9,9 @@ export type Context = Model;
 
 export const typeDefs = gql`
   type Query {
+    hello: String!
     journalEntryById(id: ID): JournalEntry
-    journalEntries(after: String, limit: Int): [JournalEntry!]!
+    journalEntries: [JournalEntry!]!
   }
 
   input JournalEntrySaveInput {
@@ -42,6 +43,8 @@ const journalEntryModelToGql = (model: JournalEntryModel): JournalEntryGql => ({
 
 export const resolvers: Resolvers<Context> = {
   Query: {
+    hello: (q, args, ctx) =>
+      ctx.authenticated ? `hello, ${ctx.user.name}!` : 'hello, world!',
     journalEntryById: async (q, args, ctx) => {
       if (!args.id) return null;
       if (!ctx.authenticated) {
@@ -58,18 +61,7 @@ export const resolvers: Resolvers<Context> = {
       if (!ctx.authenticated) {
         throw new Error('Must be authenticated to fetch journal entries');
       }
-
-      let after;
-      if (args.after) {
-        after = new Date(args.after);
-      }
-
-      return (
-        await ctx.journalEntry.readList({
-          after,
-          limit: args.limit ?? undefined,
-        })
-      ).map(journalEntryModelToGql);
+      return (await ctx.journalEntry.readList()).map(journalEntryModelToGql);
     },
   },
   Mutation: {
