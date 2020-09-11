@@ -1,10 +1,9 @@
 import React from 'react';
 import styled from '@emotion/styled/macro';
-import { Button, Box, Paper } from '@material-ui/core';
+import { Button, Box, Paper, ClickAwayListener } from '@material-ui/core';
 import Editor from 'rich-markdown-editor';
 import * as dateFns from 'date-fns';
 import { gql } from '@apollo/client';
-import { useClickAway } from 'react-use';
 import { styledWithTheme } from '../../utils';
 import DateTimePickerDialog from '../../components/DateTimePickerDialog';
 import { EditJournalEntryFragment } from '../../generated/gql-types';
@@ -59,9 +58,6 @@ const EditJournalEntry: React.FC<EditJournalEntryProps> = ({
   const setDirtyFormState = (input: DirtyFormState) =>
     _setDirtyFormState((prev) => ({ ...(prev ?? {}), ...input }));
 
-  const containerRef = React.useRef(null);
-  useClickAway(containerRef, () => onEndEdit && onEndEdit());
-
   const renderTimestamp =
     dirtyFormState?.timestamp ?? new Date(journalEntry.timestamp);
   const updateTimestamp = (newTimestamp: Date) =>
@@ -72,26 +68,28 @@ const EditJournalEntry: React.FC<EditJournalEntryProps> = ({
     setDirtyFormState({ getText: getNewText });
 
   return (
-    <JournalEntryPaper ref={containerRef}>
-      <FlushButtonContainer mb={2}>
-        <ButtonWithNormalText onClick={() => setTimeModalOpen(true)}>
-          {dateFns.format(renderTimestamp, 'PPPPp')}
-        </ButtonWithNormalText>
-        <DateTimePickerDialog
-          open={timeModalOpen}
-          onClose={(value) => {
-            value && updateTimestamp(value);
-            setTimeModalOpen(false);
-          }}
-          value={renderTimestamp}
+    <ClickAwayListener onClickAway={() => onEndEdit?.()}>
+      <JournalEntryPaper>
+        <FlushButtonContainer mb={2}>
+          <ButtonWithNormalText onClick={() => setTimeModalOpen(true)}>
+            {dateFns.format(renderTimestamp, 'PPPPp')}
+          </ButtonWithNormalText>
+          <DateTimePickerDialog
+            open={timeModalOpen}
+            onClose={(value) => {
+              value && updateTimestamp(value);
+              setTimeModalOpen(false);
+            }}
+            value={renderTimestamp}
+          />
+        </FlushButtonContainer>
+        <Editor
+          defaultValue={renderText}
+          value={renderText}
+          onChange={updateText}
         />
-      </FlushButtonContainer>
-      <Editor
-        defaultValue={renderText}
-        value={renderText}
-        onChange={updateText}
-      />
-    </JournalEntryPaper>
+      </JournalEntryPaper>
+    </ClickAwayListener>
   );
 };
 
