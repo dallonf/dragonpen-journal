@@ -13,6 +13,8 @@ import {
   JournalPageQueryVariables,
   EditJournalEntryMutation,
   EditJournalEntryMutationVariables,
+  JournalPageEditingExistsQuery,
+  JournalPageEditingExistsQueryVariables,
 } from '../../generated/gql-types';
 import EditJournalEntry, {
   EDIT_JOURNAL_ENTRY_FRAGMENT,
@@ -39,6 +41,14 @@ const QUERY = gql`
   }
   ${JOURNAL_ENTRY_LIST_ITEM_FRAGMENT}
   ${EDIT_JOURNAL_ENTRY_FRAGMENT}
+`;
+
+const EDITING_EXISTS_QUERY = gql`
+  query JournalPageEditingExistsQuery($id: ID) {
+    journalEntryById(id: $id) {
+      id
+    }
+  }
 `;
 
 const EDIT_MUTATION = gql`
@@ -73,8 +83,9 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
   const params = useParams<EditPageParams>();
   const theme = useTheme();
   const history = useHistory();
-  const [addingId, setAddingId] = React.useState<string | null>(null);
   const [atBeginning, setAtBeginning] = React.useState(false);
+
+  const editingId = (mode === 'edit' && params.id) || null;
 
   const { loading, error, data, fetchMore, client } = useQuery<
     JournalPageQuery,
@@ -84,6 +95,13 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
     variables: { limit: PAGE_SIZE },
     nextFetchPolicy: 'cache-first',
     notifyOnNetworkStatusChange: true,
+  });
+
+  const { data: editingExistsData, error: editingExistsError } = useQuery<
+    JournalPageEditingExistsQuery,
+    JournalPageEditingExistsQueryVariables
+  >(EDITING_EXISTS_QUERY, {
+    variables: { id: editingId },
   });
 
   const [mutate] = useMutation<
@@ -97,13 +115,62 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
     }
   }, [mode, params.id, history]);
 
-  React.useEffect(() => {
-    // This works around a bug where canceling edit mode after saving some edits would still have you
-    // editing - because it's the adding entry
-    if (data?.journalEntries?.some?.((x) => x.id === addingId)) {
-      setAddingId(null);
-    }
-  }, [data, addingId]);
+  const handleUpdate = React.useCallback(
+    (id: string, data: { text: string; timestamp: Date }) => {
+      const optimisticNewEntry = {
+        __typename: 'JournalEntry',
+        id,
+        text: data.text,
+        timestamp: data.timestamp.toISOString(),
+      } as const;
+
+      const variables = { limit: 1, after: null };
+      const currentData = client.readQuery<
+        JournalPageQuery,
+        JournalPageQueryVariables
+      >({
+        query: QUERY,
+        variables,
+      });
+      if (currentData) {
+        if (
+          !currentData.journalEntries.some(
+            (x) => x.id === optimisticNewEntry.id
+          )
+        ) {
+          client.writeQuery<JournalPageQuery, JournalPageQueryVariables>({
+            query: QUERY,
+            variables,
+            data: {
+              ...currentData,
+              journalEntries: [
+                optimisticNewEntry,
+                ...currentData.journalEntries,
+              ],
+            },
+          });
+        }
+      }
+
+      mutate({
+        variables: {
+          input: {
+            id,
+            text: data.text,
+            timestamp: data.timestamp.toISOString(),
+          },
+        },
+        optimisticResponse: {
+          journalEntrySave: {
+            __typename: 'JournalEntrySaveResponse',
+            success: true,
+            journalEntry: optimisticNewEntry,
+          },
+        },
+      });
+    },
+    [client, mutate]
+  );
 
   const handleScrollToEnd = () => {
     const lastEntry = data?.journalEntries[data.journalEntries.length - 1];
@@ -124,12 +191,15 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
     inner = null;
   } else {
     let entries = data!.journalEntries;
-    if (addingId) {
-      const isMockEntryNeeded = !entries.some((x) => x.id === addingId);
+    if (editingId) {
+      const isMockEntryNeeded =
+        editingExistsData &&
+        !editingExistsData.journalEntryById &&
+        !entries.some((x) => x.id === editingId);
       if (isMockEntryNeeded) {
         const mockAddingEntry = {
           __typename: 'JournalEntry',
-          id: addingId,
+          id: editingId,
           text: '',
           timestamp: new Date().toISOString(),
         } as const;
@@ -149,70 +219,9 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
       dateFns.startOfDay(new Date(x.timestamp)).toISOString()
     );
 
-    const handleUpdate = (
-      id: string,
-      data: { text: string; timestamp: Date }
-    ) => {
-      const optimisticNewEntry = {
-        __typename: 'JournalEntry',
-        id,
-        text: data.text,
-        timestamp: data.timestamp.toISOString(),
-      } as const;
-
-      if (id === addingId) {
-        history.replace(`/edit/${addingId}`);
-      }
-
-      mutate({
-        variables: {
-          input: {
-            id,
-            text: data.text,
-            timestamp: data.timestamp.toISOString(),
-          },
-        },
-        optimisticResponse: {
-          journalEntrySave: {
-            __typename: 'JournalEntrySaveResponse',
-            success: true,
-            journalEntry: optimisticNewEntry,
-          },
-        },
-      }).then((result) => {
-        if (result.data && result.data.journalEntrySave.success) {
-          const newEntry = result.data.journalEntrySave.journalEntry!;
-          const variables = { limit: 1, after: null };
-          const currentData = client.readQuery<
-            JournalPageQuery,
-            JournalPageQueryVariables
-          >({
-            query: QUERY,
-            variables,
-          });
-          if (currentData) {
-            if (!currentData.journalEntries.some((x) => x.id === newEntry.id)) {
-              client.writeQuery<JournalPageQuery, JournalPageQueryVariables>({
-                query: QUERY,
-                variables,
-                data: {
-                  ...currentData,
-                  journalEntries: [newEntry, ...currentData.journalEntries],
-                },
-              });
-            }
-          } else {
-            fetchMore({});
-          }
-        }
-      });
-    };
-
     const handleEndEdit = () => {
       if (mode === 'edit') {
         history.push('/');
-      } else if (setAddingId) {
-        setAddingId(null);
       }
     };
 
@@ -222,10 +231,7 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
           day: new Date(k),
           entries: v,
         }))}
-        isEditing={(id) =>
-          (mode === 'show' && id === addingId) ||
-          (mode === 'edit' && id === params.id)
-        }
+        isEditing={(id) => id === editingId}
         renderEditing={(x) => (
           <EditJournalEntry
             journalEntry={x}
@@ -240,8 +246,15 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
 
   const handleAddClick = () => {
     const id = uuidv4();
-    setAddingId(id);
-    history.push(`/`);
+    client.writeQuery<
+      JournalPageEditingExistsQuery,
+      JournalPageEditingExistsQueryVariables
+    >({
+      query: EDITING_EXISTS_QUERY,
+      variables: { id },
+      data: { journalEntryById: null },
+    });
+    history.push(`/edit/${id}`);
   };
 
   const handleReload = () => {
@@ -249,7 +262,7 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
     client.cache.modify({
       id: 'ROOT_QUERY',
       fields: {
-        journalEntries: (e, { storeFieldName, DELETE }) => {
+        journalEntries: (e, { DELETE }) => {
           return DELETE;
         },
       },
@@ -265,7 +278,9 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
         handleReload();
       }}
       leftExtras={
-        error ? <WarningIcon style={{ marginLeft: theme.spacing(1) }} /> : null
+        error || editingExistsError ? (
+          <WarningIcon style={{ marginLeft: theme.spacing(1) }} />
+        ) : null
       }
     >
       <JournalPageMainAreaContainer maxWidth="md">
