@@ -38,7 +38,7 @@ const ButtonWithNormalText = styled(Button)`
 
 export interface FormState {
   timestamp: Date;
-  initialText: string;
+  text: string;
 }
 
 const EditJournalEntry: React.FC<EditJournalEntryProps> = ({
@@ -46,68 +46,33 @@ const EditJournalEntry: React.FC<EditJournalEntryProps> = ({
   onUpdate,
   onEndEdit,
 }) => {
-  const [formState, setFormState] = React.useState<FormState>(() => ({
-    timestamp: dateFns.parseISO(journalEntry.timestamp),
-    initialText: journalEntry.text,
-  }));
-  const [text, setText] = React.useState('');
-
   const [timeModalOpen, setTimeModalOpen] = React.useState(false);
 
   const containerRef = React.useRef(null);
   useClickAway(containerRef, () => onEndEdit && onEndEdit());
 
-  // TODO: these update functions are not very resilient to rapid state changes
-  // esp. consider React concurrent mode
+  const renderTimestamp = new Date();
+  const updateTimestamp = (newTimestamp: Date) => {};
 
-  const updateTimestamp = (newTime: Date) => {
-    if (!formState) return;
-
-    const newState = {
-      ...formState,
-      timestamp: newTime,
-    };
-    setFormState(newState);
-
-    onUpdate(journalEntry.id, {
-      text,
-      timestamp: newState.timestamp,
-    });
-  };
-
-  const updateText = (newTextGetter: () => string) => {
-    const newText = newTextGetter();
-    setText(newText);
-
-    if (!formState) return;
-    onUpdate(journalEntry.id, {
-      text: newText,
-      timestamp: formState.timestamp,
-    });
-  };
+  const renderText = '';
+  const updateText = (getNewString: () => string) => {};
 
   return (
     <JournalEntryPaper ref={containerRef}>
       <FlushButtonContainer mb={2}>
         <ButtonWithNormalText onClick={() => setTimeModalOpen(true)}>
-          {dateFns.format(formState?.timestamp ?? new Date(), 'PPPPp')}
+          {dateFns.format(renderTimestamp, 'PPPPp')}
         </ButtonWithNormalText>
-        {formState != null && (
-          <DateTimePickerDialog
-            open={timeModalOpen}
-            onClose={(value) => {
-              value && updateTimestamp(value);
-              setTimeModalOpen(false);
-            }}
-            value={formState.timestamp}
-          />
-        )}
+        <DateTimePickerDialog
+          open={timeModalOpen}
+          onClose={(value) => {
+            value && updateTimestamp(value);
+            setTimeModalOpen(false);
+          }}
+          value={renderTimestamp}
+        />
       </FlushButtonContainer>
-      <Editor
-        defaultValue={formState.initialText}
-        value={formState.initialText}
-        onChange={updateText}
-      />
+      <Editor defaultValue={renderText} value={renderText} onChange={updateText} />
     </JournalEntryPaper>
   );
 };
