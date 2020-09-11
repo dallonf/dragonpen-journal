@@ -8,6 +8,7 @@ import {
   GraphQLFormattedError,
 } from 'graphql';
 import { makeExecutableSchema } from 'apollo-server';
+import * as yup from 'yup';
 import createModel from '../model';
 import { Context, typeDefs, resolvers } from '../schema';
 import { validateTokenAndGetUser } from '../server/checkJwt';
@@ -15,6 +16,12 @@ import { validateTokenAndGetUser } from '../server/checkJwt';
 const schema = makeExecutableSchema<Context>({
   typeDefs,
   resolvers: (resolvers as unknown) as {},
+});
+
+const queryYupSchema = yup.object().required().shape({
+  query: yup.string().required(),
+  operationName: yup.string().required(),
+  variables: yup.object(),
 });
 
 const tryParseBody = (
@@ -35,26 +42,17 @@ const tryParseBody = (
   }
 
   let json;
+  let result;
   try {
     json = JSON.parse(body);
+    result = queryYupSchema.cast(json);
   } catch (e) {
-    return { success: false, errorMessage: 'Body must be JSON' };
-  }
-  if (typeof json.query !== 'string') {
-    return { success: false, errorMessage: 'query is required' };
-  }
-  if (json.operationName && typeof json.operationName !== 'string') {
-    return { success: false, errorMessage: 'operationName must be a string' };
-  }
-  if (json.variables && typeof json.variables !== 'object') {
-    return { success: false, errorMessage: 'variables must be an object' };
+    return { success: false, errorMessage: e.message };
   }
 
   return {
     success: true,
-    query: json.query,
-    operationName: json.operationName,
-    variables: json.variables,
+    ...result,
   };
 };
 
