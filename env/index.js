@@ -60,6 +60,7 @@ const getDynamoTableName = (name) => `Dragonpen-${name}-${envName}`;
 const apiDomain = LOCALHOST_API
   ? `localhost:${LOCALHOST_API}`
   : getDomainName('api');
+const apiUrl = `${LOCALHOST_API ? 'http' : 'https'}://${apiDomain}`;
 const appDomain = LOCALHOST_APP
   ? `localhost:${LOCALHOST_APP}`
   : getDomainName();
@@ -83,10 +84,12 @@ const output = {
   httpsCertArn:
     'arn:aws:acm:us-east-1:784929213598:certificate/3c1b588a-eb2a-4fb5-9f0c-7113796c9884',
 
+  localhostApiPort: LOCALHOST_API,
   appDomain,
   appUrl: `${LOCALHOST_APP ? 'http' : 'https'}://${appDomain}`,
   apiDomain,
-  gqlUrl: `${LOCALHOST_API ? 'http' : 'https'}://${apiDomain}/graphql`,
+  apiUrl,
+  gqlUrl: `${apiUrl}/graphql`,
   ephemeralData: Boolean(EPHEMERAL_DATA),
 
   dynamoTableNames,
