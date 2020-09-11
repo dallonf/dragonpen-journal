@@ -4,6 +4,7 @@ import { Button, Box, Paper, ClickAwayListener } from '@material-ui/core';
 import Editor from 'rich-markdown-editor';
 import * as dateFns from 'date-fns';
 import { gql } from '@apollo/client';
+import { useKeyPressEvent } from 'react-use';
 import { styledWithTheme } from '../../utils';
 import DateTimePickerDialog from '../../components/DateTimePickerDialog';
 import { EditJournalEntryFragment } from '../../generated/gql-types';
@@ -60,6 +61,8 @@ const EditJournalEntry: React.FC<EditJournalEntryProps> = ({
   onUpdate,
   onEndEdit,
 }) => {
+  useKeyPressEvent('Escape', () => onEndEdit?.());
+
   const [timeModalOpen, setTimeModalOpen] = React.useState(false);
   const [
     dirtyFormState,
@@ -156,6 +159,7 @@ const EditJournalEntry: React.FC<EditJournalEntryProps> = ({
           defaultValue={renderText}
           value={renderText}
           onChange={updateText}
+          autoFocus={true}
         />
       </JournalEntryPaper>
     </ClickAwayListener>
