@@ -8,6 +8,8 @@ import { styledWithTheme } from '../../utils';
 import DateTimePickerDialog from '../../components/DateTimePickerDialog';
 import { EditJournalEntryFragment } from '../../generated/gql-types';
 
+const THROTTLE_TIME = 1000;
+
 export const EDIT_JOURNAL_ENTRY_FRAGMENT = gql`
   fragment EditJournalEntryFragment on JournalEntry {
     id
@@ -73,14 +75,28 @@ const EditJournalEntry: React.FC<EditJournalEntryProps> = ({
     }
   }, [journalEntry, _stabilizedText]);
 
+  const updateTimeoutRef = React.useRef({
+    timeout: null as NodeJS.Timeout | null,
+    callback: null as (() => void) | null,
+  });
   React.useEffect(() => {
-    if (dirtyFormState) {
-      onUpdate(journalEntry.id, {
-        timestamp:
-          dirtyFormState?.timestamp ?? new Date(journalEntry.timestamp),
-        text: dirtyFormState?.getText?.() ?? journalEntry.text,
-      });
-      setDirtyFormState(null);
+    if (dirtyFormState || updateTimeoutRef.current.timeout) {
+      updateTimeoutRef.current.callback = () => {
+        onUpdate(journalEntry.id, {
+          timestamp:
+            dirtyFormState?.timestamp ?? new Date(journalEntry.timestamp),
+          text: dirtyFormState?.getText?.() ?? journalEntry.text,
+        });
+        setDirtyFormState(null);
+      };
+
+      if (!updateTimeoutRef.current.timeout) {
+        updateTimeoutRef.current.timeout = setTimeout(() => {
+          updateTimeoutRef.current.callback!();
+          updateTimeoutRef.current.callback = null;
+          updateTimeoutRef.current.timeout = null;
+        }, THROTTLE_TIME);
+      }
     }
   }, [dirtyFormState, journalEntry, onUpdate]);
 
