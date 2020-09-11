@@ -20,10 +20,7 @@ app.get('/', (req, res) => {
 
 app.post('/graphql', makeExpressHandler(gqlHandler));
 
-// TODO: this might be better for env
-const baseUrl = 'http://localhost:4000';
-
-if (process.env.NODE_ENV === 'development') {
+if (env.auth0TestClientId) {
   app.get('/jwt', (req, res, next) => {
     (async () => {
       const code = req.param('code');
@@ -35,7 +32,7 @@ if (process.env.NODE_ENV === 'development') {
             grant_type: 'authorization_code',
             client_id: env.auth0TestClientId,
             client_secret: env.auth0TestClientSecret,
-            redirect_uri: `${baseUrl}/jwt`,
+            redirect_uri: `${env.apiUrl}/jwt`,
             scope: 'openid profile email',
             code,
           }),
@@ -47,7 +44,7 @@ if (process.env.NODE_ENV === 'development') {
           audience: env.auth0ApiId,
           response_type: 'code',
           client_id: env.auth0TestClientId,
-          redirect_uri: `${baseUrl}/jwt`,
+          redirect_uri: `${env.apiUrl}/jwt`,
           scope: 'openid profile email',
         })}`;
         res.redirect(url);
@@ -60,7 +57,7 @@ const httpServer = http.createServer(app);
 // I suspect I may be seeing something to this effect locally
 // https://github.com/microsoft/WSL/issues/4769
 httpServer.keepAliveTimeout = 0;
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || env.localhostApiPort;
 httpServer.listen(port, () => {
   console.log(`Listening on http://localhost:${port}`);
 });
