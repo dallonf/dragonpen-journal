@@ -86,3 +86,26 @@ Deployment relies on GitHub Actions. The intended workflow looks like this:
 
 The config for this is in `.github/workflows`. These files should tell you what would need to be done for a manual deployment.
 
+## Architecture
+
+### Environment
+
+The `env` project is responsible for taking environment variables and precomputing more immediately useful values to share between the client, server, and CDK in the form of JSON that is inserted into each project's source folder.
+
+Note that the client gets a different file, that has only the config that's absolutely necessary so that secrets don't leak to the browser.
+
+If you want to change any environment variables in a local environment, you will have to run either set environment variables in the shell or in `env/.env` and then run `npm start` in `env`.
+
+### CDK
+
+The CDK is used to deploy infrastructure on AWS, and also compile the server code into a Lambda function. While it creates an S3 bucket for the client, it does not deploy it; this is expected to be done separately via the AWS CLI.
+
+### Server
+
+The server project is an Express app, but is deployed as a Lambda function. To this end, a lot of the code in it serves to roughly emulate the Lambda environment (there are official tools to very accurately emulate the Lambda environment, but they are much slower).
+
+There's also a lot of leftover code for PostgreSQL support. The app doesn't support Postgres at the moment, but I'd like it to in the future.
+
+### Client
+
+The client app is ejected from Create React App primarily to turn off TypeScript checking inside Webpack - this is a slow process that needlessly slows down iteration. I've got red squigglies in my editor and detailed type error reporting in Tmux, I don't need it to break my in-browser testing too!
