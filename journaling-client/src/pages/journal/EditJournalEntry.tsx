@@ -47,6 +47,14 @@ interface DirtyFormState {
   getText?: () => string;
 }
 
+interface UpdateTimeout {
+  timeout: NodeJS.Timeout;
+  update: {
+    id: string;
+    payload: { text: string; timestamp: Date };
+  };
+}
+
 const EditJournalEntry: React.FC<EditJournalEntryProps> = ({
   journalEntry,
   onUpdate,
@@ -75,28 +83,47 @@ const EditJournalEntry: React.FC<EditJournalEntryProps> = ({
     }
   }, [journalEntry, _stabilizedText]);
 
-  const updateTimeoutRef = React.useRef({
-    timeout: null as NodeJS.Timeout | null,
-    callback: null as (() => void) | null,
-  });
+  const updateTimeoutRef = React.useRef<UpdateTimeout | null>(null);
+  // Tear it down on unmount, or when the targeted journal entry changes
+  // In the latter case, this needs to come first, so that it can use the old value of
+  // updateTimeoutRef
   React.useEffect(() => {
-    if (dirtyFormState || updateTimeoutRef.current.timeout) {
-      updateTimeoutRef.current.callback = () => {
-        onUpdate(journalEntry.id, {
-          timestamp:
-            dirtyFormState?.timestamp ?? new Date(journalEntry.timestamp),
-          text: dirtyFormState?.getText?.() ?? journalEntry.text,
-        });
-        setDirtyFormState(null);
-      };
-
-      if (!updateTimeoutRef.current.timeout) {
-        updateTimeoutRef.current.timeout = setTimeout(() => {
-          updateTimeoutRef.current.callback!();
-          updateTimeoutRef.current.callback = null;
-          updateTimeoutRef.current.timeout = null;
-        }, THROTTLE_TIME);
+    return () => {
+      if (updateTimeoutRef.current) {
+        const { timeout, update } = updateTimeoutRef.current;
+        clearTimeout(timeout);
+        onUpdate(update.id, update.payload);
+        updateTimeoutRef.current = null;
       }
+    };
+    // This also uses onUpdate, but that callback and its dependencies unfortunately aren't stable enough
+    // to list as a dependency.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [journalEntry.id]);
+  // Update dirty form, but on a delay
+  React.useEffect(() => {
+    const update = {
+      id: journalEntry.id,
+      payload: {
+        timestamp:
+          dirtyFormState?.timestamp ?? new Date(journalEntry.timestamp),
+        text: dirtyFormState?.getText?.() ?? journalEntry.text,
+      },
+    };
+
+    if (!updateTimeoutRef.current && dirtyFormState) {
+      const timeout = setTimeout(() => {
+        const { update } = updateTimeoutRef.current!;
+        onUpdate(update.id, update.payload);
+        setDirtyFormState(null);
+        updateTimeoutRef.current = null;
+      }, THROTTLE_TIME);
+      updateTimeoutRef.current = {
+        timeout,
+        update,
+      };
+    } else if (updateTimeoutRef.current) {
+      updateTimeoutRef.current.update = update;
     }
   }, [dirtyFormState, journalEntry, onUpdate]);
 

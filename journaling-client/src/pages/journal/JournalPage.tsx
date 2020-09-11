@@ -105,54 +105,8 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
     }
   }, [data, addingId]);
 
-  const handleScrollToEnd = () => {
-    const lastEntry = data?.journalEntries[data.journalEntries.length - 1];
-
-    if (!atBeginning) {
-      fetchMore({
-        variables: { after: lastEntry?.timestamp },
-      }).then((x) => {
-        if (x.data?.journalEntries.length === 0) {
-          setAtBeginning(true);
-        }
-      });
-    }
-  };
-
-  let inner;
-  if (!data || error) {
-    inner = null;
-  } else {
-    let entries = data!.journalEntries;
-    if (addingId) {
-      const isMockEntryNeeded = !entries.some((x) => x.id === addingId);
-      if (isMockEntryNeeded) {
-        const mockAddingEntry = {
-          __typename: 'JournalEntry',
-          id: addingId,
-          text: '',
-          timestamp: new Date().toISOString(),
-        } as const;
-        entries = [...entries];
-        // Reverse the array to satisfy sortedIndexBy's assumptions of an ascending sort
-        entries.reverse();
-        const index = lodash.sortedIndexBy(
-          entries,
-          mockAddingEntry,
-          (x) => x.timestamp
-        );
-        entries.splice(index, 0, mockAddingEntry);
-        entries.reverse();
-      }
-    }
-    const days = lodash.groupBy(entries, (x) =>
-      dateFns.startOfDay(new Date(x.timestamp)).toISOString()
-    );
-
-    const handleUpdate = (
-      id: string,
-      data: { text: string; timestamp: Date }
-    ) => {
+  const handleUpdate = React.useCallback(
+    (id: string, data: { text: string; timestamp: Date }) => {
       const optimisticNewEntry = {
         __typename: 'JournalEntry',
         id,
@@ -206,7 +160,53 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
           }
         }
       });
-    };
+    },
+    [addingId, client, mutate, fetchMore, history]
+  );
+
+  const handleScrollToEnd = () => {
+    const lastEntry = data?.journalEntries[data.journalEntries.length - 1];
+
+    if (!atBeginning) {
+      fetchMore({
+        variables: { after: lastEntry?.timestamp },
+      }).then((x) => {
+        if (x.data?.journalEntries.length === 0) {
+          setAtBeginning(true);
+        }
+      });
+    }
+  };
+
+  let inner;
+  if (!data || error) {
+    inner = null;
+  } else {
+    let entries = data!.journalEntries;
+    if (addingId) {
+      const isMockEntryNeeded = !entries.some((x) => x.id === addingId);
+      if (isMockEntryNeeded) {
+        const mockAddingEntry = {
+          __typename: 'JournalEntry',
+          id: addingId,
+          text: '',
+          timestamp: new Date().toISOString(),
+        } as const;
+        entries = [...entries];
+        // Reverse the array to satisfy sortedIndexBy's assumptions of an ascending sort
+        entries.reverse();
+        const index = lodash.sortedIndexBy(
+          entries,
+          mockAddingEntry,
+          (x) => x.timestamp
+        );
+        entries.splice(index, 0, mockAddingEntry);
+        entries.reverse();
+      }
+    }
+    const days = lodash.groupBy(entries, (x) =>
+      dateFns.startOfDay(new Date(x.timestamp)).toISOString()
+    );
 
     const handleEndEdit = () => {
       if (mode === 'edit') {
