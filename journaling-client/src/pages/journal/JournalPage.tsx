@@ -32,14 +32,11 @@ interface EditPageParams {
 }
 
 const QUERY = gql`
-  query JournalPageQuery($limit: Int!, $after: String, $editingId: ID) {
+  query JournalPageQuery($limit: Int!, $after: String) {
     journalEntries(limit: $limit, after: $after) {
       id
       ...JournalEntryListItemFragment
       ...EditJournalEntryFragment
-    }
-    editingEntry: journalEntryById(id: $editingId) {
-      id
     }
   }
   ${JOURNAL_ENTRY_LIST_ITEM_FRAGMENT}
@@ -95,9 +92,16 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
     JournalPageQueryVariables
   >(QUERY, {
     fetchPolicy: 'network-only',
-    variables: { limit: PAGE_SIZE, editingId },
+    variables: { limit: PAGE_SIZE },
     nextFetchPolicy: 'cache-first',
     notifyOnNetworkStatusChange: true,
+  });
+
+  const { data: editingExistsData, error: editingExistsError } = useQuery<
+    JournalPageEditingExistsQuery,
+    JournalPageEditingExistsQueryVariables
+  >(EDITING_EXISTS_QUERY, {
+    variables: { id: editingId },
   });
 
   const [mutate] = useMutation<
@@ -163,35 +167,9 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
             journalEntry: optimisticNewEntry,
           },
         },
-      }).then((result) => {
-        if (result.data && result.data.journalEntrySave.success) {
-          const newEntry = result.data.journalEntrySave.journalEntry!;
-          const variables = { limit: 1, after: null };
-          const currentData = client.readQuery<
-            JournalPageQuery,
-            JournalPageQueryVariables
-          >({
-            query: QUERY,
-            variables,
-          });
-          if (currentData) {
-            if (!currentData.journalEntries.some((x) => x.id === newEntry.id)) {
-              client.writeQuery<JournalPageQuery, JournalPageQueryVariables>({
-                query: QUERY,
-                variables,
-                data: {
-                  ...currentData,
-                  journalEntries: [newEntry, ...currentData.journalEntries],
-                },
-              });
-            }
-          } else {
-            fetchMore({});
-          }
-        }
       });
     },
-    [client, mutate, fetchMore]
+    [client, mutate]
   );
 
   const handleScrollToEnd = () => {
@@ -214,7 +192,10 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
   } else {
     let entries = data!.journalEntries;
     if (editingId) {
-      const isMockEntryNeeded = !data!.editingEntry && !entries.some(x => x.id === editingId);
+      const isMockEntryNeeded =
+        editingExistsData &&
+        !editingExistsData.journalEntryById &&
+        !entries.some((x) => x.id === editingId);
       if (isMockEntryNeeded) {
         const mockAddingEntry = {
           __typename: 'JournalEntry',
@@ -297,7 +278,9 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
         handleReload();
       }}
       leftExtras={
-        error ? <WarningIcon style={{ marginLeft: theme.spacing(1) }} /> : null
+        error || editingExistsError ? (
+          <WarningIcon style={{ marginLeft: theme.spacing(1) }} />
+        ) : null
       }
     >
       <JournalPageMainAreaContainer maxWidth="md">
