@@ -9,6 +9,7 @@ import JournalEntryListItem, {
 import { JournalEntryListItemFragment } from '../../generated/gql-types';
 
 export { JOURNAL_ENTRY_LIST_ITEM_FRAGMENT };
+
 export interface JournalListProps<TEntry extends JournalEntryListItemFragment> {
   days: {
     day: Date;
@@ -18,6 +19,8 @@ export interface JournalListProps<TEntry extends JournalEntryListItemFragment> {
   renderEditing: (entry: TEntry) => React.ReactNode;
 
   windowSize?: number;
+
+  onScrollToEnd?: () => void;
 }
 
 type ScalarKey = string | number;
@@ -167,6 +170,7 @@ const JournalList = <TEntry extends JournalEntryListItemFragment>({
   isEditing,
   renderEditing,
   windowSize = 3,
+  onScrollToEnd,
 }: JournalListProps<TEntry>) => {
   const [windowEnd, setWindowEnd] = React.useState(windowSize);
   const dayKeys = days.map((x) => x.day.getTime());
@@ -194,7 +198,19 @@ const JournalList = <TEntry extends JournalEntryListItemFragment>({
     }
   }, [lastVisibleIndex, windowSize, windowEnd]);
 
+  const oldestDay = days[days.length - 1];
+  const oldestEntry = oldestDay?.entries[oldestDay.entries.length - 1];
+
   const daysWindow = days.slice(0, windowEnd);
+  const oldestDayInWindow = daysWindow[daysWindow.length - 1];
+  const oldestEntryInWindow =
+    oldestDayInWindow?.entries[oldestDayInWindow.entries.length - 1];
+
+  React.useEffect(() => {
+    if (oldestEntryInWindow && oldestEntryInWindow === oldestEntry) {
+      onScrollToEnd?.();
+    }
+  }, [oldestEntryInWindow, oldestEntry, onScrollToEnd]);
 
   return (
     <>
