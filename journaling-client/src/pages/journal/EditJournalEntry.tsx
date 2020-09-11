@@ -53,19 +53,45 @@ const EditJournalEntry: React.FC<EditJournalEntryProps> = ({
   const [timeModalOpen, setTimeModalOpen] = React.useState(false);
   const [
     dirtyFormState,
-    _setDirtyFormState,
+    setDirtyFormState,
   ] = React.useState<DirtyFormState | null>(null);
-  const setDirtyFormState = (input: DirtyFormState) =>
-    _setDirtyFormState((prev) => ({ ...(prev ?? {}), ...input }));
+  const updateDirtyFormState = (input: DirtyFormState) =>
+    setDirtyFormState((prev) => ({ ...(prev ?? {}), ...input }));
+
+  // The editor is extremely sensitive to text changes and resets
+  // the cursor position, among other things, when it happens
+  // So make sure the value we bind it do doesn't change unless
+  // absolutely necessary (like if we start editing a different journalEntry)
+  const [_stabilizedText, setStabilizedText] = React.useState<{
+    id: string;
+    text: string;
+  }>({ id: journalEntry.id, text: journalEntry.text });
+  const stabilizedText = _stabilizedText.text;
+  React.useEffect(() => {
+    if (journalEntry.id !== _stabilizedText.id) {
+      setStabilizedText({ id: journalEntry.id, text: journalEntry.text });
+    }
+  }, [journalEntry, _stabilizedText]);
+
+  React.useEffect(() => {
+    if (dirtyFormState) {
+      onUpdate(journalEntry.id, {
+        timestamp:
+          dirtyFormState?.timestamp ?? new Date(journalEntry.timestamp),
+        text: dirtyFormState?.getText?.() ?? journalEntry.text,
+      });
+      setDirtyFormState(null);
+    }
+  }, [dirtyFormState, journalEntry, onUpdate]);
 
   const renderTimestamp =
     dirtyFormState?.timestamp ?? new Date(journalEntry.timestamp);
   const updateTimestamp = (newTimestamp: Date) =>
-    setDirtyFormState({ timestamp: newTimestamp });
+    updateDirtyFormState({ timestamp: newTimestamp });
 
-  const renderText = journalEntry.text;
+  const renderText = stabilizedText;
   const updateText = (getNewText: () => string) =>
-    setDirtyFormState({ getText: getNewText });
+    updateDirtyFormState({ getText: getNewText });
 
   return (
     <ClickAwayListener onClickAway={() => onEndEdit?.()}>
