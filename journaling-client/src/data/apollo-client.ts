@@ -1,4 +1,5 @@
-import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client';
+import { ApolloClient, InMemoryCache } from '@apollo/client';
+import { BatchHttpLink } from '@apollo/client/link/batch-http'
 import { setContext } from '@apollo/client/link/context';
 import * as env from '../env.json';
 import typePolicies from './typePolicies';
@@ -16,7 +17,7 @@ export const createClient = ({
     };
   });
 
-  const httpLink = new HttpLink({
+  const httpLink = new BatchHttpLink({
     uri: process.env.NODE_ENV === 'development' ? '/graphql' : env.gqlUrl,
   });
 

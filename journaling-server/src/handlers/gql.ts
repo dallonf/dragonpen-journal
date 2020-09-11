@@ -23,37 +23,45 @@ const queryYupSchema = yup.object().required().shape({
   operationName: yup.string().required(),
   variables: yup.object(),
 });
+type Query = yup.InferType<typeof queryYupSchema>;
+
+const batchYupSchema = yup.array().required().of(queryYupSchema);
 
 const tryParseBody = (
   body: string | undefined
 ):
   | {
-      success: true;
-      query: string;
-      operationName?: string;
-      variables?: { [key: string]: any };
+      type: 'batch';
+      queries: yup.InferType<typeof batchYupSchema>;
     }
   | {
-      success: false;
+      type: 'single';
+      query: Query;
+    }
+  | {
+      type: 'error';
       errorMessage: string;
     } => {
   if (!body) {
-    return { success: false, errorMessage: 'Body is required' };
+    return { type: 'error', errorMessage: 'Body is required' };
   }
 
-  let json;
-  let result;
   try {
-    json = JSON.parse(body);
-    result = queryYupSchema.cast(json);
+    const json = JSON.parse(body);
+    if (Array.isArray(json)) {
+      return {
+        type: 'batch',
+        queries: batchYupSchema.cast(json),
+      };
+    } else {
+      return {
+        type: 'single',
+        query: queryYupSchema.cast(json),
+      };
+    }
   } catch (e) {
-    return { success: false, errorMessage: e.message };
+    return { type: 'error', errorMessage: e.message };
   }
-
-  return {
-    success: true,
-    ...result,
-  };
 };
 
 const jsonResponse = (
@@ -71,14 +79,12 @@ export const handler = async (
 ): Promise<APIGatewayProxyStructuredResultV2> => {
   const tryBody = tryParseBody(event.body);
 
-  if (!tryBody.success) {
+  if (tryBody.type === 'error') {
     return jsonResponse({
       statusCode: 400,
       body: { message: tryBody.errorMessage },
     });
   }
-
-  const { success, ...body } = tryBody;
 
   const jwtHeader = event.headers['authorization'];
   let user;
@@ -100,29 +106,40 @@ export const handler = async (
 
   const model = createModel(user ?? null);
 
-  const result = await graphql(
-    schema,
-    body.query,
-    null,
-    model,
-    body.variables,
-    body.operationName
-  );
+  const getResult = async (query: Query) => {
+    const result = await graphql(
+      schema,
+      query.query,
+      null,
+      model,
+      query.variables,
+      query.operationName
+    );
 
-  const errors = result.errors;
-  let resultBody: {
-    data: typeof result['data'];
-    errors?: GraphQLFormattedError[];
-  } = { data: result.data };
-  if (errors) {
-    resultBody.errors = errors.map((x) => {
-      console.error(x);
-      return formatGqlError(x);
+    const errors = result.errors;
+    let resultBody: {
+      data: typeof result['data'];
+      errors?: GraphQLFormattedError[];
+    } = { data: result.data };
+    if (errors) {
+      resultBody.errors = errors.map((x) => {
+        console.error(x);
+        return formatGqlError(x);
+      });
+    }
+
+    return resultBody;
+  };
+
+  if (tryBody.type === 'batch') {
+    return jsonResponse({
+      statusCode: 200,
+      body: await Promise.all(tryBody.queries.map(getResult)),
+    });
+  } else {
+    return jsonResponse({
+      statusCode: 200,
+      body: getResult(tryBody.query),
     });
   }
-
-  return jsonResponse({
-    statusCode: 200,
-    body: result,
-  });
 };
