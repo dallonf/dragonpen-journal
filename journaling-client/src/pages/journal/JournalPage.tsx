@@ -47,11 +47,13 @@ const EDIT_MUTATION = gql`
       success
       journalEntry {
         id
-        timestamp
-        text
+        ...JournalEntryListItemFragment
+        ...EditJournalEntryFragment
       }
     }
   }
+  ${JOURNAL_ENTRY_LIST_ITEM_FRAGMENT}
+  ${EDIT_JOURNAL_ENTRY_FRAGMENT}
 `;
 
 const JournalPageMainAreaContainer = styledWithTheme(MainAreaContainer)(
@@ -177,6 +179,32 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
             journalEntry: optimisticNewEntry,
           },
         },
+      }).then((result) => {
+        if (result.data && result.data.journalEntrySave.success) {
+          const newEntry = result.data.journalEntrySave.journalEntry!;
+          const variables = { limit: 1, after: null };
+          const currentData = client.readQuery<
+            JournalPageQuery,
+            JournalPageQueryVariables
+          >({
+            query: QUERY,
+            variables,
+          });
+          if (currentData) {
+            if (!currentData.journalEntries.some((x) => x.id === newEntry.id)) {
+              client.writeQuery<JournalPageQuery, JournalPageQueryVariables>({
+                query: QUERY,
+                variables,
+                data: {
+                  ...currentData,
+                  journalEntries: [newEntry, ...currentData.journalEntries],
+                },
+              });
+            }
+          } else {
+            fetchMore({});
+          }
+        }
       });
     };
 
