@@ -78,12 +78,18 @@ export const resolvers: Resolvers<Context> = {
       if (!ctx.authenticated) {
         throw new Error('Must be authenticated to save journal entries');
       }
+
+      await new Promise((resolve) =>
+        setTimeout(resolve, Math.random() * 1000)
+      );
+      
       const result = await ctx.journalEntry.save({
         id: input.id,
         timestamp: new Date(input.timestamp),
         text: input.text,
       });
-
+      
+      console.log('Saved', result.text);
       return {
         success: true,
         journalEntry: journalEntryModelToGql(result),

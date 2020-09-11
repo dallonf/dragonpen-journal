@@ -41,21 +41,35 @@ export interface FormState {
   text: string;
 }
 
+interface DirtyFormState {
+  timestamp?: Date;
+  getText?: () => string;
+}
+
 const EditJournalEntry: React.FC<EditJournalEntryProps> = ({
   journalEntry,
   onUpdate,
   onEndEdit,
 }) => {
   const [timeModalOpen, setTimeModalOpen] = React.useState(false);
+  const [
+    dirtyFormState,
+    _setDirtyFormState,
+  ] = React.useState<DirtyFormState | null>(null);
+  const setDirtyFormState = (input: DirtyFormState) =>
+    _setDirtyFormState((prev) => ({ ...(prev ?? {}), ...input }));
 
   const containerRef = React.useRef(null);
   useClickAway(containerRef, () => onEndEdit && onEndEdit());
 
-  const renderTimestamp = new Date();
-  const updateTimestamp = (newTimestamp: Date) => {};
+  const renderTimestamp =
+    dirtyFormState?.timestamp ?? new Date(journalEntry.timestamp);
+  const updateTimestamp = (newTimestamp: Date) =>
+    setDirtyFormState({ timestamp: newTimestamp });
 
-  const renderText = '';
-  const updateText = (getNewString: () => string) => {};
+  const renderText = journalEntry.text;
+  const updateText = (getNewText: () => string) =>
+    setDirtyFormState({ getText: getNewText });
 
   return (
     <JournalEntryPaper ref={containerRef}>
@@ -72,7 +86,11 @@ const EditJournalEntry: React.FC<EditJournalEntryProps> = ({
           value={renderTimestamp}
         />
       </FlushButtonContainer>
-      <Editor defaultValue={renderText} value={renderText} onChange={updateText} />
+      <Editor
+        defaultValue={renderText}
+        value={renderText}
+        onChange={updateText}
+      />
     </JournalEntryPaper>
   );
 };
