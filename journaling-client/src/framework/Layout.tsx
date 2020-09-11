@@ -43,9 +43,10 @@ const spinAnimation = keyframes`
   }
 `;
 
+interface StyledAutorenewIconProps {}
 const StyledAutorenewIcon = styledWithTheme(AutorenewIcon)(
   (props) => css`
-    margin-left: ${props.theme.spacing(1)}px;
+    margin-left: ${props.theme.spacing(1.5)}px;
     animation: ${spinAnimation} 1.5s linear infinite;
   `
 );
@@ -59,6 +60,7 @@ export interface LayoutProps {
   pageTitle: React.ReactNode;
   backLink?: LocationDescriptor;
   loading?: boolean;
+  onReload?: () => void;
   leftExtras?: React.ReactNode;
 }
 
@@ -67,6 +69,7 @@ const Layout: React.FC<LayoutProps> = ({
   pageTitle,
   backLink,
   loading,
+  onReload,
   leftExtras,
 }) => {
   const { user, logout } = useAuth0();
@@ -79,6 +82,8 @@ const Layout: React.FC<LayoutProps> = ({
   const handleCloseMenu = () => {
     setAnchorEl(null);
   };
+
+  const showReloadButton = Boolean(onReload && !loading);
 
   return (
     <AppBox>
@@ -97,6 +102,11 @@ const Layout: React.FC<LayoutProps> = ({
           )}
           <Typography variant="h6">{pageTitle}</Typography>
           {leftExtras}
+          {showReloadButton && (
+            <IconButton aria-label="reload" color="inherit" onClick={onReload}>
+              <AutorenewIcon />
+            </IconButton>
+          )}
           {loading && <StyledAutorenewIcon aria-label="loading..." />}
           <Box
             css={css`
