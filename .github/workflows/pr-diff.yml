@@ -44,9 +44,9 @@ jobs:
           echo "\`\`\`" >> message.txt
           cat cdk/diff.txt |
             sed " \
-              /Bundling asset .*/,/✨ Built in .*/ { \
+              /Bundling asset .*/,/⚡ Done in .*/ { \
                 /Bundling asset .*/n; \
-                /✨ Built in .*/ ! { \
+                /⚡ Done in .*/ ! { \
                   d \
                 } \
               } \
