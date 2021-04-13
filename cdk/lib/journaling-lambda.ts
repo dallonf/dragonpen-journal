@@ -45,6 +45,7 @@ export class JournalingLambda extends cdk.Construct {
 
     const graphql = new lambdaNode.NodejsFunction(this, "gqlFn", {
       entry: path.join(handlersDir, "gql.ts"),
+      depsLockFilePath: path.join(serverDir, 'package-lock.json'),
       environment,
     });
 
