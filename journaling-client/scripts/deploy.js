@@ -4,7 +4,7 @@ const env = require("../src/env.json");
 const deployOut = require("../../cdk/deploy-output.json");
 
 const stack = deployOut[`JournalingStack-${env.envName}`];
-console.log("Deploy Out:", deployOut);
+
 const { uiBucket: bucket, uiDistribution: cfDistribution } = stack;
 console.assert(
   bucket,

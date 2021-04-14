@@ -44,14 +44,14 @@ jobs:
           echo "\`\`\`" >> message.txt
           cat cdk/diff.txt |
             sed " \
-              /Bundling asset .*/,/⚡ Done in .*/ { \
-                /Bundling asset .*/n; \
+              /Sending build context to Docker daemon .*/,/⚡ Done in .*/ { \
+                /Sending build context to Docker daemon .*/n; \
                 /⚡ Done in .*/ ! { \
                   d \
                 } \
               } \
               " | \
-            sed "s/\(Bundling asset .*\)/\1\n[snip build log]/" \
+            sed "s/\(Sending build context to Docker daemon .*\)/\1\n[snip build log]/" \
             >> message.txt
           echo "\`\`\`" >> message.txt
 
