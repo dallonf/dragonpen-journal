@@ -2,6 +2,7 @@ import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as lambdaNode from '@aws-cdk/aws-lambda-nodejs';
 import * as apiGateway from '@aws-cdk/aws-apigatewayv2';
+import * as apiGatewayIntegrations from '@aws-cdk/aws-apigatewayv2-integrations';
 import * as route53 from '@aws-cdk/aws-route53';
 import * as acm from '@aws-cdk/aws-certificatemanager';
 import { EnvConfig } from './env';
@@ -44,6 +45,7 @@ export class JournalingLambda extends cdk.Construct {
 
     const graphql = new lambdaNode.NodejsFunction(this, 'gqlFn', {
       entry: path.join(handlersDir, 'gql.ts'),
+      depsLockFilePath: path.join(serverDir, 'package-lock.json'),
       environment,
     });
 
@@ -59,10 +61,10 @@ export class JournalingLambda extends cdk.Construct {
       corsPreflight: {
         allowHeaders: ['Authorization', 'Content-Type'],
         allowMethods: [
-          apiGateway.HttpMethod.GET,
-          apiGateway.HttpMethod.POST,
-          apiGateway.HttpMethod.HEAD,
-          apiGateway.HttpMethod.OPTIONS,
+          apiGateway.CorsHttpMethod.GET,
+          apiGateway.CorsHttpMethod.POST,
+          apiGateway.CorsHttpMethod.HEAD,
+          apiGateway.CorsHttpMethod.OPTIONS,
         ],
         allowOrigins: ['*'],
         maxAge: cdk.Duration.days(10),
@@ -72,7 +74,7 @@ export class JournalingLambda extends cdk.Construct {
     api.addRoutes({
       path: '/graphql',
       methods: [apiGateway.HttpMethod.POST],
-      integration: new apiGateway.LambdaProxyIntegration({
+      integration: new apiGatewayIntegrations.LambdaProxyIntegration({
         handler: graphql,
       }),
     });
