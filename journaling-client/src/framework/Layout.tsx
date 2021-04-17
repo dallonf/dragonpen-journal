@@ -1,6 +1,6 @@
 /** @jsx jsx */
 import React from 'react';
-import styled from '@emotion/styled/macro';
+import styled from '@emotion/styled';
 import { jsx, css, keyframes } from '@emotion/core';
 import {
   AppBar,
