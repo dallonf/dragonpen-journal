@@ -10,7 +10,6 @@ export default defineConfig({
     babel({
       babelHelpers: "bundled",
       include: ["src/**/*"],
-      plugins: ["emotion"],
       extensions: [".ts", ".tsx"],
     }),
   ],
