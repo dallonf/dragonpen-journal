@@ -1,13 +1,13 @@
-import React from 'react';
-import { Fab, useTheme } from '@material-ui/core';
-import { Add as AddIcon, Warning as WarningIcon } from '@material-ui/icons';
-import * as lodash from 'lodash';
-import { useHistory, useParams } from 'react-router-dom';
-import { v4 as uuidv4 } from 'uuid';
-import { useQuery, gql, useMutation } from '@apollo/client';
-import * as dateFns from 'date-fns';
-import { styledWithTheme } from '../../utils';
-import Layout, { MainAreaContainer } from '../../framework/Layout';
+import React from "react";
+import { Fab, useTheme } from "@material-ui/core";
+import { Add as AddIcon, Warning as WarningIcon } from "@material-ui/icons";
+import * as lodash from "lodash";
+import { useHistory, useParams } from "react-router-dom";
+import { v4 as uuidv4 } from "uuid";
+import { useQuery, gql, useMutation } from "@apollo/client";
+import * as dateFns from "date-fns";
+import { styledWithTheme } from "../../utils";
+import Layout, { MainAreaContainer } from "../../framework/Layout";
 import {
   JournalPageQuery,
   JournalPageQueryVariables,
@@ -15,16 +15,16 @@ import {
   EditJournalEntryMutationVariables,
   JournalPageEditingExistsQuery,
   JournalPageEditingExistsQueryVariables,
-} from '../../generated/gql-types';
+} from "../../generated/gql-types";
 import EditJournalEntry, {
   EDIT_JOURNAL_ENTRY_FRAGMENT,
-} from './EditJournalEntry';
-import JournalList, { JOURNAL_ENTRY_LIST_ITEM_FRAGMENT } from './JournalList';
+} from "./EditJournalEntry";
+import JournalList, { JOURNAL_ENTRY_LIST_ITEM_FRAGMENT } from "./JournalList";
 
 const PAGE_SIZE = 50;
 
 export interface JournalPageProps {
-  mode?: 'show' | 'edit';
+  mode?: "show" | "edit";
 }
 
 interface EditPageParams {
@@ -74,26 +74,26 @@ const JournalPageMainAreaContainer = styledWithTheme(MainAreaContainer)(
 );
 
 const ActuallyFloatingActionButton = styledWithTheme(Fab)((props) => ({
-  position: 'fixed',
+  position: "fixed",
   right: props.theme.spacing(2),
   bottom: props.theme.spacing(2),
 }));
 
-const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
+const JournalPage: React.FC<JournalPageProps> = ({ mode = "show" }) => {
   const params = useParams<EditPageParams>();
   const theme = useTheme();
   const history = useHistory();
   const [atBeginning, setAtBeginning] = React.useState(false);
 
-  const editingId = (mode === 'edit' && params.id) || null;
+  const editingId = (mode === "edit" && params.id) || null;
 
   const { loading, error, data, fetchMore, client } = useQuery<
     JournalPageQuery,
     JournalPageQueryVariables
   >(QUERY, {
-    fetchPolicy: 'network-only',
+    fetchPolicy: "network-only",
     variables: { limit: PAGE_SIZE },
-    nextFetchPolicy: 'cache-first',
+    nextFetchPolicy: "cache-first",
     notifyOnNetworkStatusChange: true,
   });
 
@@ -110,15 +110,15 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
   >(EDIT_MUTATION);
 
   React.useEffect(() => {
-    if (mode === 'edit' && !params.id) {
-      history.replace('/');
+    if (mode === "edit" && !params.id) {
+      history.replace("/");
     }
   }, [mode, params.id, history]);
 
   const handleUpdate = React.useCallback(
     (id: string, data: { text: string; timestamp: Date }) => {
       const optimisticNewEntry = {
-        __typename: 'JournalEntry',
+        __typename: "JournalEntry",
         id,
         text: data.text,
         timestamp: data.timestamp.toISOString(),
@@ -162,7 +162,7 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
         },
         optimisticResponse: {
           journalEntrySave: {
-            __typename: 'JournalEntrySaveResponse',
+            __typename: "JournalEntrySaveResponse",
             success: true,
             journalEntry: optimisticNewEntry,
           },
@@ -198,9 +198,9 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
         !entries.some((x) => x.id === editingId);
       if (isMockEntryNeeded) {
         const mockAddingEntry = {
-          __typename: 'JournalEntry',
+          __typename: "JournalEntry",
           id: editingId,
-          text: '',
+          text: "",
           timestamp: new Date().toISOString(),
         } as const;
         entries = [...entries];
@@ -220,8 +220,8 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
     );
 
     const handleEndEdit = () => {
-      if (mode === 'edit') {
-        history.push('/');
+      if (mode === "edit") {
+        history.push("/");
       }
     };
 
@@ -260,7 +260,7 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = 'show' }) => {
   const handleReload = () => {
     setAtBeginning(false);
     client.cache.modify({
-      id: 'ROOT_QUERY',
+      id: "ROOT_QUERY",
       fields: {
         journalEntries: (e, { DELETE }) => {
           return DELETE;

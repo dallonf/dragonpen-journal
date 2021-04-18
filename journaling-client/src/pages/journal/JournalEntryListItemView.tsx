@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   ListItem,
   ListItemText,
@@ -6,9 +6,9 @@ import {
   IconButton,
   Menu,
   MenuItem,
-} from '@material-ui/core';
-import { Link as RouterLink } from 'react-router-dom';
-import { MoreVert as MoreVertIcon } from '@material-ui/icons';
+} from "@material-ui/core";
+import { Link as RouterLink } from "react-router-dom";
+import { MoreVert as MoreVertIcon } from "@material-ui/icons";
 
 const JournalEntryListItemView: React.FC<{
   id: string;
@@ -45,7 +45,7 @@ const JournalEntryListItemView: React.FC<{
       <ListItemSecondaryAction
         onMouseEnter={() => setMenuButtonHover(true)}
         onMouseLeave={() => setMenuButtonHover(false)}
-        style={{ visibility: hovering ? 'visible' : 'hidden' }}
+        style={{ visibility: hovering ? "visible" : "hidden" }}
       >
         {
           <IconButton
