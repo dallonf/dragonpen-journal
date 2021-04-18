@@ -1,7 +1,6 @@
 module.exports = {
   roots: ["<rootDir>/src"],
   collectCoverageFrom: ["src/**/*.{js,jsx,ts,tsx}", "!src/**/*.d.ts"],
-  setupFiles: ["react-app-polyfill/jsdom"],
   setupFilesAfterEnv: ["<rootDir>/src/setupTests.ts"],
   testMatch: [
     "<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}",
@@ -25,7 +24,6 @@ module.exports = {
   ],
   modulePaths: [],
   moduleNameMapper: {
-    "^react-native$": "react-native-web",
     "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy",
   },
   moduleFileExtensions: [
