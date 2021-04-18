@@ -83,7 +83,7 @@
   },
   "scripts": {
     "start": "vite",
-    "build": "node scripts/build.js",
+    "build": "vite build",
     "test": "jest --watch",
     "deploy": "node scripts/deploy.js",
     "typecheck": "tsc --incremental --noEmit false --outDir tmp/.ts",
