@@ -1,7 +1,7 @@
 /** @jsx jsx */
-import React from 'react';
-import styled from '@emotion/styled';
-import { jsx, css, keyframes } from '@emotion/core';
+import React from "react";
+import styled from "@emotion/styled";
+import { jsx, css, keyframes } from "@emotion/core";
 import {
   AppBar,
   Typography,
@@ -11,27 +11,27 @@ import {
   IconButton,
   Menu,
   MenuItem,
-} from '@material-ui/core';
+} from "@material-ui/core";
 import {
   ArrowBack as ArrowBackIcon,
   AccountCircle as AccountCircleIcon,
   Autorenew as AutorenewIcon,
-} from '@material-ui/icons';
-import { Link as RouterLink } from 'react-router-dom';
-import { LocationDescriptor } from 'history';
-import { useAuth0 } from '@auth0/auth0-react';
-import { styledWithTheme } from '../utils';
+} from "@material-ui/icons";
+import { Link as RouterLink } from "react-router-dom";
+import { LocationDescriptor } from "history";
+import { useAuth0 } from "@auth0/auth0-react";
+import { styledWithTheme } from "../utils";
 
 const AppBox = styled(Box)({
-  display: 'flex',
-  flexDirection: 'column',
-  height: '100vh',
+  display: "flex",
+  flexDirection: "column",
+  height: "100vh",
 });
 
 const AppBoxCell = styled(Box)({
-  position: 'relative',
+  position: "relative",
   flex: 1,
-  overflowY: 'auto',
+  overflowY: "auto",
 });
 
 const spinAnimation = keyframes`
@@ -127,14 +127,22 @@ const Layout: React.FC<LayoutProps> = ({
               <Menu
                 id="menu-appbar"
                 anchorEl={anchorEl}
-                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                anchorOrigin={{ vertical: "top", horizontal: "right" }}
+                transformOrigin={{ vertical: "top", horizontal: "right" }}
                 keepMounted={true}
                 open={open}
                 onClose={handleCloseMenu}
               >
                 <MenuItem>{user.name}</MenuItem>
-                <MenuItem onClick={() => logout()}>Log out</MenuItem>
+                <MenuItem
+                  onClick={() =>
+                    logout({
+                      returnTo: window.location.origin,
+                    })
+                  }
+                >
+                  Log out
+                </MenuItem>
               </Menu>
             </Box>
           )}
