@@ -49,7 +49,7 @@ interface DirtyFormState {
 }
 
 interface UpdateTimeout {
-  timeout: NodeJS.Timeout;
+  timeout: number;
   update: {
     id: string;
     payload: { text: string; timestamp: Date };
