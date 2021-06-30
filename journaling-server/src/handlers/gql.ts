@@ -1,21 +1,21 @@
 import {
   APIGatewayProxyEventV2,
   APIGatewayProxyStructuredResultV2,
-} from 'aws-lambda';
+} from "aws-lambda";
 import {
   graphql,
   formatError as formatGqlError,
   GraphQLFormattedError,
-} from 'graphql';
-import { makeExecutableSchema } from 'apollo-server';
-import * as yup from 'yup';
-import createModel from '../model';
-import { Context, typeDefs, resolvers } from '../schema';
-import { validateTokenAndGetUser } from '../server/checkJwt';
+} from "graphql";
+import { makeExecutableSchema } from "apollo-server";
+import * as yup from "yup";
+import createModel from "../model";
+import { Context, typeDefs, resolvers } from "../schema";
+import { validateTokenAndGetUser } from "../server/checkJwt";
 
 const schema = makeExecutableSchema<Context>({
   typeDefs,
-  resolvers: (resolvers as unknown) as {},
+  resolvers: resolvers as unknown as {},
 });
 
 const queryYupSchema = yup.object().required().shape({
@@ -31,45 +31,49 @@ const tryParseBody = (
   body: string | undefined
 ):
   | {
-      type: 'batch';
+      type: "batch";
       queries: yup.InferType<typeof batchYupSchema>;
     }
   | {
-      type: 'single';
+      type: "single";
       query: Query;
     }
   | {
-      type: 'error';
+      type: "error";
       errorMessage: string;
     } => {
   if (!body) {
-    return { type: 'error', errorMessage: 'Body is required' };
+    return { type: "error", errorMessage: "Body is required" };
   }
 
   try {
     const json = JSON.parse(body);
     if (Array.isArray(json)) {
       return {
-        type: 'batch',
-        queries: batchYupSchema.cast(json),
+        type: "batch",
+        queries: batchYupSchema.cast(json) as yup.InferType<
+          typeof batchYupSchema
+        >,
       };
     } else {
       return {
-        type: 'single',
-        query: queryYupSchema.cast(json),
+        type: "single",
+        query: queryYupSchema.cast(json) as yup.InferType<
+          typeof queryYupSchema
+        >,
       };
     }
   } catch (e) {
-    return { type: 'error', errorMessage: e.message };
+    return { type: "error", errorMessage: e.message };
   }
 };
 
 const jsonResponse = (
-  input: Omit<APIGatewayProxyStructuredResultV2, 'body'> & { body: any }
+  input: Omit<APIGatewayProxyStructuredResultV2, "body"> & { body: any }
 ) => {
   return {
     ...input,
-    headers: { ...(input.headers || {}), 'Content-Type': 'application/json' },
+    headers: { ...(input.headers || {}), "Content-Type": "application/json" },
     body: JSON.stringify(input.body),
   };
 };
@@ -79,14 +83,14 @@ export const handler = async (
 ): Promise<APIGatewayProxyStructuredResultV2> => {
   const tryBody = tryParseBody(event.body);
 
-  if (tryBody.type === 'error') {
+  if (tryBody.type === "error") {
     return jsonResponse({
       statusCode: 400,
       body: { message: tryBody.errorMessage },
     });
   }
 
-  const jwtHeader = event.headers['authorization'];
+  const jwtHeader = event.headers["authorization"];
   let user;
   if (jwtHeader) {
     try {
@@ -98,7 +102,7 @@ export const handler = async (
         body: {
           message: err.message
             ? `Error processing JWT: ${err.message}`
-            : 'Error processing JWT',
+            : "Error processing JWT",
         },
       });
     }
@@ -118,7 +122,7 @@ export const handler = async (
 
     const errors = result.errors;
     let resultBody: {
-      data: typeof result['data'];
+      data: typeof result["data"];
       errors?: GraphQLFormattedError[];
     } = { data: result.data };
     if (errors) {
@@ -131,10 +135,10 @@ export const handler = async (
     return resultBody;
   };
 
-  if (tryBody.type === 'batch') {
+  if (tryBody.type === "batch") {
     return jsonResponse({
       statusCode: 200,
-      body: await Promise.all(tryBody.queries.map(getResult)),
+      body: await Promise.all(tryBody.queries!.map(getResult)),
     });
   } else {
     return jsonResponse({
