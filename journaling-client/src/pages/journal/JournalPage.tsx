@@ -1,12 +1,12 @@
 import React from "react";
 import { Fab, useTheme } from "@material-ui/core";
 import { Add as AddIcon, Warning as WarningIcon } from "@material-ui/icons";
+import styled from "@emotion/styled";
 import * as lodash from "lodash";
 import { useHistory, useParams } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import { useQuery, gql, useMutation } from "@apollo/client";
 import * as dateFns from "date-fns";
-import { styledWithTheme } from "../../utils";
 import Layout, { MainAreaContainer } from "../../framework/Layout";
 import {
   JournalPageQuery,
@@ -66,14 +66,12 @@ const EDIT_MUTATION = gql`
   ${EDIT_JOURNAL_ENTRY_FRAGMENT}
 `;
 
-const JournalPageMainAreaContainer = styledWithTheme(MainAreaContainer)(
-  (props) => ({
-    //  enough space for the FAB
-    marginBottom: props.theme.spacing(8),
-  })
-);
+const JournalPageMainAreaContainer = styled(MainAreaContainer)((props) => ({
+  //  enough space for the FAB
+  marginBottom: props.theme.spacing(8),
+}));
 
-const ActuallyFloatingActionButton = styledWithTheme(Fab)((props) => ({
+const ActuallyFloatingActionButton = styled(Fab)((props) => ({
   position: "fixed",
   right: props.theme.spacing(2),
   bottom: props.theme.spacing(2),

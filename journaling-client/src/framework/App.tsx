@@ -1,18 +1,18 @@
-import React from 'react';
+import React from "react";
 import {
   CssBaseline,
   ThemeProvider as MuiThemeProvider,
-} from '@material-ui/core';
-import { ThemeProvider as EmotionThemeProvider } from 'emotion-theming';
-import { BrowserRouter } from 'react-router-dom';
-import { MuiPickersUtilsProvider } from '@material-ui/pickers';
-import { ApolloProvider } from '@apollo/client';
-import DateFnsUtils from '@date-io/date-fns';
-import { Auth0Provider, useAuth0 } from '@auth0/auth0-react';
-import theme from './theme';
-import { createClient } from '../data/apollo-client';
-import * as env from '../env.json';
-import LoadingPlaceholder from './LoadingPlaceholderPage';
+} from "@material-ui/core";
+import { ThemeProvider as EmotionThemeProvider } from "@emotion/react";
+import { BrowserRouter } from "react-router-dom";
+import { MuiPickersUtilsProvider } from "@material-ui/pickers";
+import { ApolloProvider } from "@apollo/client";
+import DateFnsUtils from "@date-io/date-fns";
+import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
+import theme from "./theme";
+import { createClient } from "../data/apollo-client";
+import * as env from "../env.json";
+import LoadingPlaceholder from "./LoadingPlaceholderPage";
 
 const RequireLogin: React.FC = ({ children }) => {
   const { loginWithRedirect, isAuthenticated, isLoading } = useAuth0();

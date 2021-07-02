@@ -1,7 +1,7 @@
 /** @jsx jsx */
 import React from "react";
 import styled from "@emotion/styled";
-import { jsx, css, keyframes } from "@emotion/core";
+import { jsx, css, keyframes } from "@emotion/react";
 import {
   AppBar,
   Typography,
@@ -20,7 +20,6 @@ import {
 import { Link as RouterLink } from "react-router-dom";
 import { LocationDescriptor } from "history";
 import { useAuth0 } from "@auth0/auth0-react";
-import { styledWithTheme } from "../utils";
 
 const AppBox = styled(Box)({
   display: "flex",
@@ -43,15 +42,14 @@ const spinAnimation = keyframes`
   }
 `;
 
-interface StyledAutorenewIconProps {}
-const StyledAutorenewIcon = styledWithTheme(AutorenewIcon)(
+const StyledAutorenewIcon = styled(AutorenewIcon)(
   (props) => css`
     margin-left: ${props.theme.spacing(1.5)}px;
     animation: ${spinAnimation} 1.5s linear infinite;
   `
 );
 
-export const MainAreaContainer = styledWithTheme(Container)((props) => ({
+export const MainAreaContainer = styled(Container)((props) => ({
   marginTop: props.theme.spacing(2),
 }));
 

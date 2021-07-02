@@ -5,5 +5,5 @@ module.exports = (api) => ({
         "@babel/preset-typescript",
       ]
     : [],
-  plugins: ["emotion"],
+  plugins: ["@emotion"],
 });

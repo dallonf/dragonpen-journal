@@ -1,13 +1,12 @@
-import React from 'react';
-import styled from '@emotion/styled';
-import { Button, Box, Paper, ClickAwayListener } from '@material-ui/core';
-import Editor from 'rich-markdown-editor';
-import * as dateFns from 'date-fns';
-import { gql } from '@apollo/client';
-import { useKeyPressEvent } from 'react-use';
-import { styledWithTheme } from '../../utils';
-import DateTimePickerDialog from '../../components/DateTimePickerDialog';
-import { EditJournalEntryFragment } from '../../generated/gql-types';
+import React from "react";
+import styled from "@emotion/styled";
+import { Button, Box, Paper, ClickAwayListener } from "@material-ui/core";
+import Editor from "rich-markdown-editor";
+import * as dateFns from "date-fns";
+import { gql } from "@apollo/client";
+import { useKeyPressEvent } from "react-use";
+import DateTimePickerDialog from "../../components/DateTimePickerDialog";
+import { EditJournalEntryFragment } from "../../generated/gql-types";
 
 const THROTTLE_TIME = 1000;
 
@@ -25,11 +24,11 @@ export interface EditJournalEntryProps {
   onEndEdit?: () => void;
 }
 
-const JournalEntryPaper = styledWithTheme(Paper)((props) => ({
+const JournalEntryPaper = styled(Paper)((props) => ({
   padding: props.theme.spacing(2),
 }));
 
-const FlushButtonContainer = styledWithTheme(Box)((props) => ({
+const FlushButtonContainer = styled(Box)((props) => ({
   marginLeft: -props.theme.spacing(1),
   marginRight: -props.theme.spacing(1),
 }));
@@ -61,13 +60,11 @@ const EditJournalEntry: React.FC<EditJournalEntryProps> = ({
   onUpdate,
   onEndEdit,
 }) => {
-  useKeyPressEvent('Escape', () => onEndEdit?.());
+  useKeyPressEvent("Escape", () => onEndEdit?.());
 
   const [timeModalOpen, setTimeModalOpen] = React.useState(false);
-  const [
-    dirtyFormState,
-    setDirtyFormState,
-  ] = React.useState<DirtyFormState | null>(null);
+  const [dirtyFormState, setDirtyFormState] =
+    React.useState<DirtyFormState | null>(null);
   const updateDirtyFormState = (input: DirtyFormState) =>
     setDirtyFormState((prev) => ({ ...(prev ?? {}), ...input }));
 
@@ -144,7 +141,7 @@ const EditJournalEntry: React.FC<EditJournalEntryProps> = ({
       <JournalEntryPaper>
         <FlushButtonContainer mb={2}>
           <ButtonWithNormalText onClick={() => setTimeModalOpen(true)}>
-            {dateFns.format(renderTimestamp, 'PPPPp')}
+            {dateFns.format(renderTimestamp, "PPPPp")}
           </ButtonWithNormalText>
           <DateTimePickerDialog
             open={timeModalOpen}
