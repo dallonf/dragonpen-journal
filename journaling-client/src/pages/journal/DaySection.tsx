@@ -1,13 +1,12 @@
-import React from 'react';
-import styled from '@emotion/styled';
-import { Typography, Box } from '@material-ui/core';
-import { styledWithTheme } from '../../utils';
+import React from "react";
+import styled from "@emotion/styled";
+import { Typography, Box } from "@material-ui/core";
 
 const DaySectionBox = styled(Box)`
   position: relative;
 `;
 
-const HeaderLine = styledWithTheme(Box)`
+const HeaderLine = styled(Box)`
   position: sticky;
   top: 0;
   display: flex;
@@ -17,7 +16,7 @@ const HeaderLine = styledWithTheme(Box)`
 
   &:before,
   &:after {
-    content: '';
+    content: "";
     display: block;
     height: 1px;
     background: ${(props) => props.theme.palette.text.primary};

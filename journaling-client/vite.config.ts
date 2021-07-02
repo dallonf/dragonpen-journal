@@ -7,6 +7,7 @@ import env from "./src/env.json";
 export default defineConfig({
   build: {
     outDir: "build",
+    sourcemap: true,
   },
   plugins: [
     reactRefresh(),

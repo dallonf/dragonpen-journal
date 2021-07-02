@@ -18,7 +18,7 @@ export const createClient = ({
   });
 
   const httpLink = new BatchHttpLink({
-    uri: process.env.NODE_ENV === 'development' ? '/graphql' : env.gqlUrl,
+    uri: import.meta.env.DEV ? '/graphql' : env.gqlUrl,
   });
 
   const client = new ApolloClient({
