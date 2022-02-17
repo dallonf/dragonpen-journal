@@ -64,6 +64,7 @@ const tryParseBody = (
       };
     }
   } catch (e) {
+    if (!(e instanceof Error)) throw e;
     return { type: "error", errorMessage: e.message };
   }
 };
@@ -96,6 +97,7 @@ export const handler = async (
     try {
       user = await validateTokenAndGetUser(jwtHeader);
     } catch (err) {
+      if (!(err instanceof Error)) throw err;
       console.error(err);
       return jsonResponse({
         statusCode: 401,
