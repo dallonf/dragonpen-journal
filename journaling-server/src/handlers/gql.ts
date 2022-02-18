@@ -113,14 +113,13 @@ export const handler = async (
   const model = createModel(user ?? null);
 
   const getResult = async (query: Query) => {
-    const result = await graphql(
+    const result = await graphql({
       schema,
-      query.query,
-      null,
-      model,
-      query.variables,
-      query.operationName
-    );
+      source: query.query,
+      contextValue: model,
+      operationName: query.operationName,
+      variableValues: query.variables,
+    });
 
     const errors = result.errors;
     let resultBody: {
