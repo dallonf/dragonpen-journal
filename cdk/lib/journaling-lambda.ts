@@ -74,9 +74,10 @@ export class JournalingLambda extends cdk.Construct {
     api.addRoutes({
       path: '/graphql',
       methods: [apiGateway.HttpMethod.POST],
-      integration: new apiGatewayIntegrations.LambdaProxyIntegration({
-        handler: graphql,
-      }),
+      integration: new apiGatewayIntegrations.HttpLambdaIntegration(
+        'gqlIntegration',
+        graphql
+      ),
     });
 
     new route53.ARecord(this, 'apiRecord', {
