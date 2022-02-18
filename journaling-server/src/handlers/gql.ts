@@ -7,7 +7,7 @@ import {
   formatError as formatGqlError,
   GraphQLFormattedError,
 } from "graphql";
-import { makeExecutableSchema } from "apollo-server";
+import { makeExecutableSchema } from "@graphql-tools/schema";
 import * as yup from "yup";
 import createModel from "../model";
 import { Context, typeDefs, resolvers } from "../schema";
