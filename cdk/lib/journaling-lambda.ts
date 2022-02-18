@@ -1,10 +1,13 @@
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as lambdaNode from '@aws-cdk/aws-lambda-nodejs';
-import * as apiGateway from '@aws-cdk/aws-apigatewayv2';
-import * as apiGatewayIntegrations from '@aws-cdk/aws-apigatewayv2-integrations';
-import * as route53 from '@aws-cdk/aws-route53';
-import * as acm from '@aws-cdk/aws-certificatemanager';
+import { Construct } from 'constructs';
+import * as cdk from 'aws-cdk-lib';
+import {
+  aws_lambda_nodejs as lambdaNode,
+  aws_route53 as route53,
+  aws_certificatemanager as acm,
+} from 'aws-cdk-lib';
+import * as apiGateway from '@aws-cdk/aws-apigatewayv2-alpha';
+import * as apiGatewayIntegrations from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
 import { EnvConfig } from './env';
 import { JournalingDBStack } from './journaling-db-stack';
 
@@ -26,10 +29,10 @@ class ApiGatewayV2Target implements route53.IAliasRecordTarget {
   }
 }
 
-export class JournalingLambda extends cdk.Construct {
+export class JournalingLambda extends Construct {
   gqlUrl: string;
 
-  constructor(scope: cdk.Construct, id: string, props: JournalingLambdaProps) {
+  constructor(scope: Construct, id: string, props: JournalingLambdaProps) {
     super(scope, id);
 
     const apiDomain = props.envConfig.apiDomain;

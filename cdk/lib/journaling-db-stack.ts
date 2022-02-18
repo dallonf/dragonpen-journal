@@ -1,5 +1,6 @@
-import * as cdk from '@aws-cdk/core';
-import * as dynamodb from '@aws-cdk/aws-dynamodb';
+import { Construct } from 'constructs';
+import * as cdk from 'aws-cdk-lib';
+import { aws_dynamodb as dynamodb } from 'aws-cdk-lib';
 import { EnvConfig } from './env';
 
 export interface JournalingDBStackProps extends cdk.StackProps {
@@ -13,7 +14,7 @@ export interface TableCollection {
 export class JournalingDBStack extends cdk.Stack {
   tables: TableCollection;
 
-  constructor(scope: cdk.Construct, id: string, props: JournalingDBStackProps) {
+  constructor(scope: Construct, id: string, props: JournalingDBStackProps) {
     super(scope, id, props);
 
     const journalEntriesTable = new dynamodb.Table(this, 'JournalEntries', {
