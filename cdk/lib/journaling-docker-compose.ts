@@ -1,14 +1,14 @@
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import { DockerImageAsset } from '@aws-cdk/aws-ecr-assets';
-import * as s3 from '@aws-cdk/aws-s3';
-import * as s3Deployment from '@aws-cdk/aws-s3-deployment';
+import { Construct } from 'constructs';
+import * as cdk from 'aws-cdk-lib';
+import { aws_s3 as s3, aws_s3_deployment as s3Deployment } from 'aws-cdk-lib';
+import { DockerImageAsset } from 'aws-cdk-lib/aws-ecr-assets';
 
 interface JournalingDockerComposeProps {}
 
-export class JournalingDockerCompose extends cdk.Construct {
+export class JournalingDockerCompose extends Construct {
   constructor(
-    scope: cdk.Construct,
+    scope: Construct,
     id: string,
     props: JournalingDockerComposeProps
   ) {

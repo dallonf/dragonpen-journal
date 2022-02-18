@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import { JournalingStack } from '../lib/journaling-stack';
 import { JournalingDBStack } from '../lib/journaling-db-stack';
 import { loadEnvConfig } from '../lib/env';

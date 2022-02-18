@@ -1,12 +1,13 @@
-import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as s3 from '@aws-cdk/aws-s3';
-import * as crypto from 'crypto';
-import * as s3Deployment from '@aws-cdk/aws-s3-deployment';
-import * as cloudfront from '@aws-cdk/aws-cloudfront';
-import * as route53 from '@aws-cdk/aws-route53';
-import * as route53Targets from '@aws-cdk/aws-route53-targets';
-import * as acm from '@aws-cdk/aws-certificatemanager';
+import { Construct } from 'constructs';
+import * as cdk from 'aws-cdk-lib';
+import {
+  aws_s3 as s3,
+  aws_s3_deployment as s3Deployment,
+  aws_cloudfront as cloudfront,
+  aws_route53 as route53,
+  aws_route53_targets as route53Targets,
+  aws_certificatemanager as acm,
+} from 'aws-cdk-lib';
 import { EnvConfig } from './env';
 
 export interface JournalingUiProps {
@@ -15,11 +16,11 @@ export interface JournalingUiProps {
   acmCert: acm.ICertificate;
 }
 
-export class JournalingUi extends cdk.Construct {
+export class JournalingUi extends Construct {
   bucket: s3.Bucket;
   distribution: cloudfront.IDistribution;
 
-  constructor(scope: cdk.Construct, id: string, props: JournalingUiProps) {
+  constructor(scope: Construct, id: string, props: JournalingUiProps) {
     super(scope, id);
 
     const appBucket = new s3.Bucket(this, 'appBucket', {

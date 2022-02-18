@@ -7,7 +7,7 @@ import {
   formatError as formatGqlError,
   GraphQLFormattedError,
 } from "graphql";
-import { makeExecutableSchema } from "apollo-server";
+import { makeExecutableSchema } from "@graphql-tools/schema";
 import * as yup from "yup";
 import createModel from "../model";
 import { Context, typeDefs, resolvers } from "../schema";
@@ -64,6 +64,7 @@ const tryParseBody = (
       };
     }
   } catch (e) {
+    if (!(e instanceof Error)) throw e;
     return { type: "error", errorMessage: e.message };
   }
 };
@@ -96,6 +97,7 @@ export const handler = async (
     try {
       user = await validateTokenAndGetUser(jwtHeader);
     } catch (err) {
+      if (!(err instanceof Error)) throw err;
       console.error(err);
       return jsonResponse({
         statusCode: 401,
@@ -111,14 +113,13 @@ export const handler = async (
   const model = createModel(user ?? null);
 
   const getResult = async (query: Query) => {
-    const result = await graphql(
+    const result = await graphql({
       schema,
-      query.query,
-      null,
-      model,
-      query.variables,
-      query.operationName
-    );
+      source: query.query,
+      contextValue: model,
+      operationName: query.operationName,
+      variableValues: query.variables,
+    });
 
     const errors = result.errors;
     let resultBody: {
