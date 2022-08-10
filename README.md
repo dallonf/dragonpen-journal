@@ -24,7 +24,7 @@ LOCALHOST_APP=3000
 # Optional
 REPL_USER_ID=[The ID of a test user in Auth0 - used to initialize a server REPL]
 AUTH0_TEST_CLIENT_ID=[The ID of a test web application in Auth0 - used to power the /jwt route locally for grabbing a JWT out of Auth0]
-AUTH0_TEST_CLIENT_ID=[The secret key corresponding to the above]
+AUTH0_TEST_CLIENT_SECRET=[The secret key corresponding to the above]
 ```
 
 In `env`, run `npm install` and `npm start`. This will generate more detailed configuration and distribute it to the other projects.
