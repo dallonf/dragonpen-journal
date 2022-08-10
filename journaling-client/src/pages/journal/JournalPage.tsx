@@ -9,12 +9,12 @@ import * as dateFns from "date-fns";
 import { styledWithTheme } from "../../utils";
 import Layout, { MainAreaContainer } from "../../framework/Layout";
 import {
-  JournalPageQuery,
-  JournalPageQueryVariables,
-  EditJournalEntryMutation,
-  EditJournalEntryMutationVariables,
-  JournalPageEditingExistsQuery,
-  JournalPageEditingExistsQueryVariables,
+  JournalPageQueryQuery,
+  JournalPageQueryQueryVariables,
+  EditJournalEntryMutationMutation,
+  EditJournalEntryMutationMutationVariables,
+  JournalPageEditingExistsQueryQuery,
+  JournalPageEditingExistsQueryQueryVariables,
 } from "../../generated/gql-types";
 import EditJournalEntry, {
   EDIT_JOURNAL_ENTRY_FRAGMENT,
@@ -88,8 +88,8 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = "show" }) => {
   const editingId = (mode === "edit" && params.id) || null;
 
   const { loading, error, data, fetchMore, client } = useQuery<
-    JournalPageQuery,
-    JournalPageQueryVariables
+    JournalPageQueryQuery,
+    JournalPageQueryQueryVariables
   >(QUERY, {
     fetchPolicy: "network-only",
     variables: { limit: PAGE_SIZE },
@@ -98,15 +98,15 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = "show" }) => {
   });
 
   const { data: editingExistsData, error: editingExistsError } = useQuery<
-    JournalPageEditingExistsQuery,
-    JournalPageEditingExistsQueryVariables
+    JournalPageEditingExistsQueryQuery,
+    JournalPageEditingExistsQueryQueryVariables
   >(EDITING_EXISTS_QUERY, {
     variables: { id: editingId },
   });
 
   const [mutate] = useMutation<
-    EditJournalEntryMutation,
-    EditJournalEntryMutationVariables
+    EditJournalEntryMutationMutation,
+    EditJournalEntryMutationMutationVariables
   >(EDIT_MUTATION);
 
   React.useEffect(() => {
@@ -126,8 +126,8 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = "show" }) => {
 
       const variables = { limit: 1, after: null };
       const currentData = client.readQuery<
-        JournalPageQuery,
-        JournalPageQueryVariables
+        JournalPageQueryQuery,
+        JournalPageQueryQueryVariables
       >({
         query: QUERY,
         variables,
@@ -138,7 +138,7 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = "show" }) => {
             (x) => x.id === optimisticNewEntry.id
           )
         ) {
-          client.writeQuery<JournalPageQuery, JournalPageQueryVariables>({
+          client.writeQuery<JournalPageQueryQuery, JournalPageQueryQueryVariables>({
             query: QUERY,
             variables,
             data: {
@@ -247,8 +247,8 @@ const JournalPage: React.FC<JournalPageProps> = ({ mode = "show" }) => {
   const handleAddClick = () => {
     const id = uuidv4();
     client.writeQuery<
-      JournalPageEditingExistsQuery,
-      JournalPageEditingExistsQueryVariables
+      JournalPageEditingExistsQueryQuery,
+      JournalPageEditingExistsQueryQueryVariables
     >({
       query: EDITING_EXISTS_QUERY,
       variables: { id },
