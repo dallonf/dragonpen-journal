@@ -2,11 +2,7 @@ import {
   APIGatewayProxyEventV2,
   APIGatewayProxyStructuredResultV2,
 } from "aws-lambda";
-import {
-  graphql,
-  formatError as formatGqlError,
-  GraphQLFormattedError,
-} from "graphql";
+import { graphql, GraphQLFormattedError } from "graphql";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import * as yup from "yup";
 import createModel from "../model";
@@ -129,7 +125,7 @@ export const handler = async (
     if (errors) {
       resultBody.errors = errors.map((x) => {
         console.error(x);
-        return formatGqlError(x);
+        return x.toJSON();
       });
     }
 

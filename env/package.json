@@ -4,7 +4,7 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "dotenv": "^10.0.0",
-    "yup": "^0.32.9"
+    "dotenv": "^16.0.1",
+    "yup": "^0.32.11"
   }
 }

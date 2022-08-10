@@ -1,0 +1,10 @@
+overwrite: true
+schema: "../journaling-server/graphql.schema.json"
+documents: "./src/**/*.{ts,tsx}"
+generates:
+  src/generated/gql-types.ts:
+    plugins:
+      - "typescript"
+      - "typescript-operations"
+      - "typescript-react-apollo"
+      - "fragment-matcher"

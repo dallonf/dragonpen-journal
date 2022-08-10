@@ -6,11 +6,11 @@ import DaySection from './DaySection';
 import JournalEntryListItem, {
   JOURNAL_ENTRY_LIST_ITEM_FRAGMENT,
 } from './JournalEntryListItem';
-import { JournalEntryListItemFragment } from '../../generated/gql-types';
+import { JournalEntryListItemFragmentFragment } from '../../generated/gql-types';
 
 export { JOURNAL_ENTRY_LIST_ITEM_FRAGMENT };
 
-export interface JournalListProps<TEntry extends JournalEntryListItemFragment> {
+export interface JournalListProps<TEntry extends JournalEntryListItemFragmentFragment> {
   days: {
     day: Date;
     entries: TEntry[];
@@ -165,7 +165,7 @@ const useVisibleElements = <TKey extends ScalarKey>({
   };
 };
 
-const JournalList = <TEntry extends JournalEntryListItemFragment>({
+const JournalList = <TEntry extends JournalEntryListItemFragmentFragment>({
   days,
   isEditing,
   renderEditing,
