@@ -10,6 +10,7 @@ const client = jwksRsa({
 const getKey: GetPublicKeyOrSecret = (header, callback) => {
   client.getSigningKey(header.kid!, (err, key) => {
     if (err) return callback(err);
+    if (!key) return callback("Missing key");
 
     const signingKey = key.getPublicKey();
     callback(null, signingKey);
